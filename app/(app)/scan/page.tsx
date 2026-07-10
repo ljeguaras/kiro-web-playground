@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { preprocessImage, recognizeText, OcrProgress } from "@/lib/ocr";
 import { ReceiptItem, ReceiptParseResult, Category } from "@/lib/types";
 import {
   Camera,
@@ -13,6 +12,7 @@ import {
   X,
   Save,
   AlertCircle,
+  Sparkles,
 } from "lucide-react";
 
 type ScanStep = "upload" | "processing" | "review" | "saving" | "done" | "error";
@@ -20,7 +20,7 @@ type ScanStep = "upload" | "processing" | "review" | "saving" | "done" | "error"
 export default function ScanPage() {
   const [step, setStep] = useState<ScanStep>("upload");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [ocrProgress, setOcrProgress] = useState<OcrProgress>({ status: "", progress: 0 });
+  const [progressMessage, setProgressMessage] = useState("");
   const [parseResult, setParseResult] = useState<ReceiptParseResult | null>(null);
   const [editingItems, setEditingItems] = useState<ReceiptItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -32,7 +32,9 @@ export default function ScanPage() {
 
   async function loadCategories() {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
     const { data } = await supabase
       .from("categories")
@@ -47,7 +49,7 @@ export default function ScanPage() {
 
   async function handleFileSelect(file: File) {
     if (!file.type.startsWith("image/")) {
-      setError("Please select an image file (JPEG, PNG)");
+      setError("Please select an image file (JPEG, PNG, WebP)");
       return;
     }
 
@@ -56,33 +58,18 @@ export default function ScanPage() {
     setImagePreview(previewUrl);
     setStep("processing");
     setError(null);
+    setProgressMessage("Sending receipt to Gemini AI...");
 
     try {
-      // Step 1: Preprocess image
-      setOcrProgress({ status: "Preprocessing image...", progress: 0.1 });
-      const processedImage = await preprocessImage(file);
+      // Send image directly to Gemini Vision API (no more Tesseract OCR!)
+      const formData = new FormData();
+      formData.append("receipt", file);
 
-      // Step 2: OCR
-      setOcrProgress({ status: "Reading text from receipt...", progress: 0.2 });
-      const ocrText = await recognizeText(processedImage, (progress) => {
-        setOcrProgress({
-          status: progress.status === "recognizing text"
-            ? "Reading text from receipt..."
-            : progress.status,
-          progress: 0.2 + progress.progress * 0.4,
-        });
-      });
+      setProgressMessage("🤖 Gemini AI reading receipt & categorizing items...");
 
-      if (!ocrText.trim()) {
-        throw new Error("Could not read any text from the image. Please try a clearer photo.");
-      }
-
-      // Step 3: AI parsing
-      setOcrProgress({ status: "AI analyzing receipt items...", progress: 0.7 });
       const response = await fetch("/api/parse-receipt", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ocrText }),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -91,14 +78,15 @@ export default function ScanPage() {
       }
 
       const result: ReceiptParseResult = await response.json();
-      setOcrProgress({ status: "Done!", progress: 1 });
 
       setParseResult(result);
       setEditingItems(result.items);
       if (result.date) setDate(result.date);
       setStep("review");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to process receipt");
+      setError(
+        err instanceof Error ? err.message : "Failed to process receipt"
+      );
       setStep("error");
     } finally {
       URL.revokeObjectURL(previewUrl);
@@ -110,7 +98,9 @@ export default function ScanPage() {
 
     setStep("saving");
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     try {
@@ -138,16 +128,20 @@ export default function ScanPage() {
       setStep("done");
       setTimeout(() => router.push("/transactions"), 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save transactions");
+      setError(
+        err instanceof Error ? err.message : "Failed to save transactions"
+      );
       setStep("error");
     }
   }
 
-  function updateItem(index: number, field: keyof ReceiptItem, value: string | number) {
+  function updateItem(
+    index: number,
+    field: keyof ReceiptItem,
+    value: string | number
+  ) {
     setEditingItems((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
-      )
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
     );
   }
 
@@ -161,7 +155,7 @@ export default function ScanPage() {
     setParseResult(null);
     setEditingItems([]);
     setError(null);
-    setOcrProgress({ status: "", progress: 0 });
+    setProgressMessage("");
   }
 
   return (
@@ -169,7 +163,8 @@ export default function ScanPage() {
       <header>
         <h1 className="text-2xl font-bold">Scan Receipt</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Take a photo or upload a receipt. AI will identify items, expand abbreviations, and categorize them.
+          Take a photo or upload a receipt — Gemini AI reads items, expands
+          abbreviations, and auto-categorizes everything.
         </p>
       </header>
 
@@ -181,6 +176,10 @@ export default function ScanPage() {
             <p className="mt-4 text-sm text-muted-foreground">
               Take a photo or upload a receipt image
             </p>
+            <div className="mt-2 flex items-center justify-center gap-1 text-xs text-primary">
+              <Sparkles className="h-3 w-3" />
+              <span>Powered by Gemini AI — no manual entry needed</span>
+            </div>
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
                 onClick={() => cameraInputRef.current?.click()}
@@ -205,14 +204,18 @@ export default function ScanPage() {
             accept="image/*"
             capture="environment"
             className="hidden"
-            onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+            onChange={(e) =>
+              e.target.files?.[0] && handleFileSelect(e.target.files[0])
+            }
           />
           <input
             ref={fileInputRef}
             type="file"
             accept="image/jpeg,image/png,image/webp"
             className="hidden"
-            onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+            onChange={(e) =>
+              e.target.files?.[0] && handleFileSelect(e.target.files[0])
+            }
           />
         </section>
       )}
@@ -222,13 +225,10 @@ export default function ScanPage() {
         <section className="rounded-xl border border-border bg-card p-8 text-center space-y-4">
           <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
           <div>
-            <p className="font-medium">{ocrProgress.status}</p>
-            <div className="mt-3 h-2 rounded-full bg-secondary overflow-hidden max-w-xs mx-auto">
-              <div
-                className="h-full rounded-full bg-primary transition-all duration-300"
-                style={{ width: `${ocrProgress.progress * 100}%` }}
-              />
-            </div>
+            <p className="font-medium">{progressMessage}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              This usually takes 2-5 seconds
+            </p>
           </div>
           {imagePreview && (
             <img
@@ -245,10 +245,12 @@ export default function ScanPage() {
         <section className="space-y-4">
           {parseResult?.merchant && (
             <div className="rounded-lg bg-secondary/50 p-3 text-sm">
-              <span className="font-medium">Store:</span> {parseResult.merchant}
+              <span className="font-medium">Store:</span>{" "}
+              {parseResult.merchant}
               {parseResult.date && (
                 <span className="ml-4">
-                  <span className="font-medium">Date:</span> {parseResult.date}
+                  <span className="font-medium">Date:</span>{" "}
+                  {parseResult.date}
                 </span>
               )}
             </div>
@@ -260,7 +262,8 @@ export default function ScanPage() {
                 Items Found ({editingItems.length})
               </h2>
               <div className="text-sm text-muted-foreground">
-                Total: ${editingItems.reduce((s, i) => s + i.price, 0).toFixed(2)}
+                Total: $
+                {editingItems.reduce((s, i) => s + i.price, 0).toFixed(2)}
               </div>
             </div>
 
@@ -274,29 +277,51 @@ export default function ScanPage() {
                     <input
                       type="text"
                       value={item.name}
-                      onChange={(e) => updateItem(index, "name", e.target.value)}
+                      onChange={(e) =>
+                        updateItem(index, "name", e.target.value)
+                      }
                       className="w-full bg-transparent text-sm font-medium focus:outline-none focus:ring-1 focus:ring-ring rounded px-1"
                     />
-                    <select
-                      value={item.category}
-                      onChange={(e) => updateItem(index, "category", e.target.value)}
-                      className="mt-1 text-xs bg-transparent border-none text-muted-foreground focus:outline-none"
-                    >
-                      {["Food", "Drinks", "Hygiene", "Cleaning", "Household", "Entertainment", "Transportation", "Bills", "Savings", "Other"].map(
-                        (cat) => (
+                    <div className="mt-1 flex items-center gap-1">
+                      <Sparkles className="h-3 w-3 text-primary" />
+                      <select
+                        value={item.category}
+                        onChange={(e) =>
+                          updateItem(index, "category", e.target.value)
+                        }
+                        className="text-xs bg-transparent border-none text-muted-foreground focus:outline-none"
+                      >
+                        {[
+                          "Food",
+                          "Drinks",
+                          "Hygiene",
+                          "Cleaning",
+                          "Household",
+                          "Entertainment",
+                          "Transportation",
+                          "Bills",
+                          "Savings",
+                          "Other",
+                        ].map((cat) => (
                           <option key={cat} value={cat}>
                             {cat}
                           </option>
-                        )
-                      )}
-                    </select>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <input
                     type="number"
                     step="0.01"
                     min="0"
                     value={item.price}
-                    onChange={(e) => updateItem(index, "price", parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      updateItem(
+                        index,
+                        "price",
+                        parseFloat(e.target.value) || 0
+                      )
+                    }
                     className="w-20 text-right text-sm font-medium bg-transparent border border-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
                   />
                   <button
@@ -357,7 +382,9 @@ export default function ScanPage() {
             <Check className="h-6 w-6 text-green-600" />
           </div>
           <p className="mt-3 font-medium">All items saved successfully!</p>
-          <p className="text-sm text-muted-foreground">Redirecting to transactions...</p>
+          <p className="text-sm text-muted-foreground">
+            Redirecting to transactions...
+          </p>
         </section>
       )}
 
