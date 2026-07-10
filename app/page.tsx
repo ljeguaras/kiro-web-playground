@@ -2,9 +2,8 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { CATEGORIES, type Category, getCategoryById } from "@/lib/categories";
-import { categorizeExpense } from "@/lib/ai-categorizer";
 
 interface Expense {
   id: string;
@@ -16,6 +15,12 @@ interface Expense {
   date: string;
 }
 
+interface CategoryPreview {
+  category: Category;
+  confidence: number;
+  reasoning: string;
+}
+
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -23,12 +28,14 @@ export default function Home() {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [previewCategory, setPreviewCategory] = useState<{
-    category: Category;
-    confidence: number;
-    reasoning: string;
-  } | null>(null);
+  const [previewCategory, setPreviewCategory] = useState<CategoryPreview | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [filter, setFilter] = useState<string>("all");
+
+  // Receipt OCR state
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanResult, setScanResult] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -37,49 +44,168 @@ export default function Home() {
     }
   }, [status, router]);
 
-  // Real-time AI categorization preview as user types
-  const updatePreview = useCallback((desc: string, amt: string) => {
-    if (desc.trim().length < 2) {
+  // Real-time AI categorization preview via Gemini API (debounced)
+  const updatePreview = useCallback(async (desc: string, amt: string) => {
+    if (desc.trim().length < 3) {
       setPreviewCategory(null);
       return;
     }
-    const result = categorizeExpense(desc, amt ? parseFloat(amt) : undefined);
-    setPreviewCategory({
-      category: result.category,
-      confidence: result.confidence,
-      reasoning: result.reasoning,
-    });
+
+    setIsPreviewLoading(true);
+    try {
+      const res = await fetch("/api/categorize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: desc,
+          amount: amt ? parseFloat(amt) : undefined,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setPreviewCategory({
+            category: getCategoryById(json.data.categoryId),
+            confidence: json.data.confidence,
+            reasoning: json.data.reasoning,
+          });
+        }
+      }
+    } catch {
+      // Silently fail preview - not critical
+    } finally {
+      setIsPreviewLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       updatePreview(description, amount);
-    }, 300); // Debounce 300ms
+    }, 600); // Debounce 600ms for API calls
     return () => clearTimeout(timeout);
   }, [description, amount, updatePreview]);
 
-  const handleAddExpense = (e: React.FormEvent) => {
+  const handleAddExpense = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim() || !amount) return;
 
     setIsAdding(true);
 
-    const result = categorizeExpense(description, parseFloat(amount));
-    const newExpense: Expense = {
-      id: crypto.randomUUID(),
-      description: description.trim(),
-      amount: parseFloat(amount),
-      category: result.category,
-      confidence: result.confidence,
-      reasoning: result.reasoning,
-      date: new Date().toISOString(),
-    };
+    try {
+      const res = await fetch("/api/categorize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: description.trim(),
+          amount: parseFloat(amount),
+        }),
+      });
 
-    setExpenses((prev) => [newExpense, ...prev]);
-    setDescription("");
-    setAmount("");
-    setPreviewCategory(null);
-    setIsAdding(false);
+      let category: Category = getCategoryById("other");
+      let confidence = 0.5;
+      let reasoning = "Categorized";
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          category = getCategoryById(json.data.categoryId);
+          confidence = json.data.confidence;
+          reasoning = json.data.reasoning;
+        }
+      }
+
+      const newExpense: Expense = {
+        id: crypto.randomUUID(),
+        description: description.trim(),
+        amount: parseFloat(amount),
+        category,
+        confidence,
+        reasoning,
+        date: new Date().toISOString(),
+      };
+
+      setExpenses((prev) => [newExpense, ...prev]);
+      setDescription("");
+      setAmount("");
+      setPreviewCategory(null);
+    } catch {
+      // Still add with fallback
+      const newExpense: Expense = {
+        id: crypto.randomUUID(),
+        description: description.trim(),
+        amount: parseFloat(amount),
+        category: getCategoryById("other"),
+        confidence: 0,
+        reasoning: "API unavailable",
+        date: new Date().toISOString(),
+      };
+      setExpenses((prev) => [newExpense, ...prev]);
+      setDescription("");
+      setAmount("");
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  // Receipt OCR handler
+  const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsScanning(true);
+    setScanResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("receipt", file);
+
+      const res = await fetch("/api/categorize", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data && json.data.length > 0) {
+          const newExpenses: Expense[] = json.data.map(
+            (item: {
+              description: string;
+              amount: number;
+              categoryId: string;
+              confidence: number;
+              reasoning: string;
+            }) => ({
+              id: crypto.randomUUID(),
+              description: item.description,
+              amount: item.amount,
+              category: getCategoryById(item.categoryId),
+              confidence: item.confidence,
+              reasoning: item.reasoning,
+              date: new Date().toISOString(),
+            })
+          );
+
+          setExpenses((prev) => [...newExpenses, ...prev]);
+          setScanResult(
+            `✅ Extracted ${newExpenses.length} item${newExpenses.length > 1 ? "s" : ""} from receipt`
+          );
+        } else {
+          setScanResult("⚠️ Could not read any items from the receipt. Try a clearer photo.");
+        }
+      } else {
+        const errorJson = await res.json().catch(() => null);
+        setScanResult(`❌ ${errorJson?.error || "Failed to process receipt"}`);
+      }
+    } catch {
+      setScanResult("❌ Network error. Please try again.");
+    } finally {
+      setIsScanning(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   const handleDeleteExpense = (id: string) => {
@@ -93,7 +219,7 @@ export default function Home() {
 
   const totalAmount = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
 
-  // Category summary for chart
+  // Category summary
   const categorySummary = CATEGORIES.filter((c) => c.id !== "other")
     .map((cat) => ({
       ...cat,
@@ -139,7 +265,7 @@ export default function Home() {
 
       <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:py-8">
         {/* Add Expense Form */}
-        <section aria-label="Add new expense" className="mb-8">
+        <section aria-label="Add new expense" className="mb-6">
           <form
             onSubmit={handleAddExpense}
             className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800"
@@ -188,26 +314,89 @@ export default function Home() {
             </div>
 
             {/* AI Category Preview */}
-            {previewCategory && (
+            {(previewCategory || isPreviewLoading) && (
               <div className="mt-4 flex items-center gap-2 rounded-lg bg-indigo-50 px-4 py-2.5 dark:bg-indigo-950/30">
                 <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">
-                  🤖 AI suggests:
+                  🤖 Gemini AI:
                 </span>
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${previewCategory.category.color}`}
-                >
-                  {previewCategory.category.emoji} {previewCategory.category.name}
-                </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  ({Math.round(previewCategory.confidence * 100)}% confidence)
-                </span>
+                {isPreviewLoading ? (
+                  <span className="text-xs text-gray-500 animate-pulse">Analyzing...</span>
+                ) : previewCategory ? (
+                  <>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${previewCategory.category.color}`}
+                    >
+                      {previewCategory.category.emoji} {previewCategory.category.name}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      ({Math.round(previewCategory.confidence * 100)}% confidence)
+                    </span>
+                    <span className="hidden text-xs text-gray-400 sm:inline" title={previewCategory.reasoning}>
+                      — {previewCategory.reasoning}
+                    </span>
+                  </>
+                ) : null}
               </div>
             )}
 
             <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-              ✨ AI auto-categorizes your expenses as you type — no manual selection needed!
+              ✨ Powered by Google Gemini — auto-categorizes as you type, no manual selection needed!
             </p>
           </form>
+        </section>
+
+        {/* Receipt OCR Section */}
+        <section aria-label="Scan receipt" className="mb-8">
+          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 dark:bg-gray-900 dark:ring-gray-800">
+            <h2 className="mb-3 text-lg font-semibold text-gray-900 dark:text-white">
+              📸 Scan Receipt
+            </h2>
+            <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+              Upload a receipt photo — Gemini AI extracts all items, amounts, and auto-categorizes each one.
+            </p>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <label
+                htmlFor="receipt-upload"
+                className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed px-6 py-3 text-sm font-medium transition-colors ${
+                  isScanning
+                    ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed dark:border-gray-700 dark:bg-gray-800"
+                    : "border-indigo-300 bg-indigo-50 text-indigo-700 hover:border-indigo-400 hover:bg-indigo-100 dark:border-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-300 dark:hover:bg-indigo-950/50"
+                }`}
+              >
+                {isScanning ? (
+                  <>
+                    <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Scanning with Gemini...
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Upload Receipt Photo
+                  </>
+                )}
+                <input
+                  ref={fileInputRef}
+                  id="receipt-upload"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/heic"
+                  onChange={handleReceiptUpload}
+                  disabled={isScanning}
+                  className="sr-only"
+                />
+              </label>
+
+              {scanResult && (
+                <p className="text-sm text-gray-700 dark:text-gray-300">{scanResult}</p>
+              )}
+            </div>
+          </div>
         </section>
 
         {/* Summary Cards */}
@@ -285,7 +474,7 @@ export default function Home() {
                 No expenses yet
               </p>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Add your first expense above — AI will categorize it automatically!
+                Add an expense above or scan a receipt — Gemini AI categorizes everything automatically!
               </p>
             </div>
           ) : filteredExpenses.length === 0 ? (
@@ -312,7 +501,10 @@ export default function Home() {
                       >
                         {expense.category.name}
                       </span>
-                      <span className="text-xs text-gray-400 dark:text-gray-500" title={expense.reasoning}>
+                      <span
+                        className="text-xs text-gray-400 dark:text-gray-500"
+                        title={expense.reasoning}
+                      >
                         🤖 {Math.round(expense.confidence * 100)}%
                       </span>
                       <time className="text-xs text-gray-400 dark:text-gray-500">
