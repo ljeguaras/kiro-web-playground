@@ -1,10 +1,4 @@
-import { Profile, Category, Transaction, Budget, DEFAULT_CATEGORIES } from "./types";
-
-export interface User {
-  id: string;
-  username: string;
-  passwordHash: string;
-}
+import { User, Profile, Category, Transaction, Budget, DEFAULT_CATEGORIES } from "./types";
 
 interface Store {
   users: Map<string, User>;

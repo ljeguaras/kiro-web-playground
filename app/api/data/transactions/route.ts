@@ -28,21 +28,29 @@ export async function POST(request: NextRequest) {
 
     // Support batch creation: if body is an array, create all transactions atomically
     if (Array.isArray(body)) {
-      const items = body.map((item) => {
+      // Validate all items before processing
+      for (const item of body) {
         if (!item.type || item.amount === undefined || !item.date) {
-          throw new Error("Each item must have type, amount, and date");
+          return NextResponse.json(
+            { error: "Each item must have type, amount, and date" },
+            { status: 400 }
+          );
         }
         if (item.type !== "income" && item.type !== "expense") {
-          throw new Error("type must be 'income' or 'expense'");
+          return NextResponse.json(
+            { error: "type must be 'income' or 'expense'" },
+            { status: 400 }
+          );
         }
-        return {
-          category_id: item.category_id || null,
-          type: item.type as "income" | "expense",
-          amount: Number(item.amount),
-          note: item.note || null,
-          date: item.date,
-        };
-      });
+      }
+
+      const items = body.map((item) => ({
+        category_id: item.category_id || null,
+        type: item.type as "income" | "expense",
+        amount: Number(item.amount),
+        note: item.note || null,
+        date: item.date,
+      }));
 
       const transactions = addTransactions(session.userId, items);
       return NextResponse.json(transactions, { status: 201 });

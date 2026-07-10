@@ -31,7 +31,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await createSession(user.id);
+    const sessionCreated = await createSession(user.id);
+    if (!sessionCreated) {
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true, userId: user.id });
   } catch (error) {

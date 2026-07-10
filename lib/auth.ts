@@ -34,8 +34,17 @@ export async function getSession(): Promise<{ userId: string } | null> {
   }
 }
 
-export async function createSession(userId: string): Promise<Response> {
-  const secret = getSecret();
+export async function createSession(userId: string): Promise<boolean> {
+  const secret = (() => {
+    try {
+      return getSecret();
+    } catch {
+      return null;
+    }
+  })();
+
+  if (!secret) return false;
+
   const token = await new SignJWT({ userId })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("7d")
@@ -51,7 +60,7 @@ export async function createSession(userId: string): Promise<Response> {
     maxAge: 60 * 60 * 24 * 7, // 7 days
   });
 
-  return new Response(null);
+  return true;
 }
 
 export async function deleteSession(): Promise<void> {
