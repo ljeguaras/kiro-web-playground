@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import { Transaction, Budget, Profile } from "@/lib/types";
 import { formatCurrency, getMonthKey, getCategoryColor } from "@/lib/utils";
 import { CurrencyCode } from "@/lib/types";
@@ -33,23 +32,28 @@ export default function DashboardPage() {
   const currency = (profile?.currency || "USD") as CurrencyCode;
 
   async function loadData() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const [profileRes, transRes, budgetRes] = await Promise.all([
+        fetch("/api/data/profile"),
+        fetch("/api/data/transactions"),
+        fetch("/api/data/budgets"),
+      ]);
 
-    const [profileRes, transRes, budgetRes] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).single(),
-      supabase
-        .from("transactions")
-        .select("*, category:categories(*)")
-        .eq("user_id", user.id)
-        .order("date", { ascending: false }),
-      supabase.from("budgets").select("*, category:categories(*)").eq("user_id", user.id),
-    ]);
-
-    if (profileRes.data) setProfile(profileRes.data);
-    if (transRes.data) setTransactions(transRes.data);
-    if (budgetRes.data) setBudgets(budgetRes.data);
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        setProfile(profileData);
+      }
+      if (transRes.ok) {
+        const transData = await transRes.json();
+        setTransactions(transData);
+      }
+      if (budgetRes.ok) {
+        const budgetData = await budgetRes.json();
+        setBudgets(budgetData);
+      }
+    } catch (error) {
+      console.error("Failed to load data:", error);
+    }
     setLoading(false);
   }
 

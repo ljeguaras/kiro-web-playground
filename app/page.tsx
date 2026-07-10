@@ -95,7 +95,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="mx-auto max-w-7xl px-4 text-center text-sm text-muted-foreground">
-          <p>Budget Tracker - Smart Expense Management. Built with Next.js, Supabase & AI.</p>
+          <p>Budget Tracker - Smart Expense Management. Built with Next.js & AI.</p>
         </div>
       </footer>
     </main>

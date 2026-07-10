@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import { Transaction, Category, Profile } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { CurrencyCode } from "@/lib/types";
@@ -22,23 +21,19 @@ export default function TransactionsPage() {
   const currency = (profile?.currency || "USD") as CurrencyCode;
 
   async function loadData() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const [profileRes, transRes, catRes] = await Promise.all([
+        fetch("/api/data/profile"),
+        fetch("/api/data/transactions"),
+        fetch("/api/data/categories"),
+      ]);
 
-    const [profileRes, transRes, catRes] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).single(),
-      supabase
-        .from("transactions")
-        .select("*, category:categories(*)")
-        .eq("user_id", user.id)
-        .order("date", { ascending: false }),
-      supabase.from("categories").select("*").eq("user_id", user.id),
-    ]);
-
-    if (profileRes.data) setProfile(profileRes.data);
-    if (transRes.data) setTransactions(transRes.data);
-    if (catRes.data) setCategories(catRes.data);
+      if (profileRes.ok) setProfile(await profileRes.json());
+      if (transRes.ok) setTransactions(await transRes.json());
+      if (catRes.ok) setCategories(await catRes.json());
+    } catch (error) {
+      console.error("Failed to load data:", error);
+    }
     setLoading(false);
   }
 
@@ -48,9 +43,10 @@ export default function TransactionsPage() {
 
   async function deleteTransaction(id: string) {
     if (!confirm("Delete this transaction?")) return;
-    const supabase = createClient();
-    await supabase.from("transactions").delete().eq("id", id);
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    const res = await fetch(`/api/data/transactions?id=${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setTransactions((prev) => prev.filter((t) => t.id !== id));
+    }
   }
 
   function exportCSV() {

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { Category, CURRENCIES } from "@/lib/types";
 import { getCategoryColor } from "@/lib/utils";
 import { Save, Plus, Trash2, AlertTriangle } from "lucide-react";
@@ -18,20 +17,24 @@ export default function SettingsPage() {
   const router = useRouter();
 
   async function loadData() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const [profileRes, catRes] = await Promise.all([
+        fetch("/api/data/profile"),
+        fetch("/api/data/categories"),
+      ]);
 
-    const [profileRes, catRes] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).single(),
-      supabase.from("categories").select("*").eq("user_id", user.id).order("name"),
-    ]);
-
-    if (profileRes.data) {
-      setDisplayName(profileRes.data.display_name || "");
-      setCurrency(profileRes.data.currency);
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        setDisplayName(profileData.display_name || "");
+        setCurrency(profileData.currency);
+      }
+      if (catRes.ok) {
+        const catData = await catRes.json();
+        setCategories(catData);
+      }
+    } catch (error) {
+      console.error("Failed to load data:", error);
     }
-    if (catRes.data) setCategories(catRes.data);
     setLoading(false);
   }
 
@@ -42,18 +45,23 @@ export default function SettingsPage() {
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
 
-    const { error } = await supabase
-      .from("profiles")
-      .update({ display_name: displayName || null, currency })
-      .eq("id", user.id);
+    try {
+      const res = await fetch("/api/data/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          display_name: displayName || null,
+          currency,
+        }),
+      });
 
-    if (!error) {
-      setMessage("Profile saved successfully!");
-      setTimeout(() => setMessage(null), 3000);
+      if (res.ok) {
+        setMessage("Profile saved successfully!");
+        setTimeout(() => setMessage(null), 3000);
+      }
+    } catch (error) {
+      console.error("Failed to save profile:", error);
     }
     setSaving(false);
   }
@@ -62,19 +70,22 @@ export default function SettingsPage() {
     e.preventDefault();
     if (!newCategory.trim()) return;
 
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const res = await fetch("/api/data/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newCategory.trim() }),
+      });
 
-    const { data, error } = await supabase
-      .from("categories")
-      .insert({ user_id: user.id, name: newCategory.trim(), is_default: false })
-      .select()
-      .single();
-
-    if (!error && data) {
-      setCategories((prev) => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
-      setNewCategory("");
+      if (res.ok) {
+        const data = await res.json();
+        setCategories((prev) =>
+          [...prev, data].sort((a, b) => a.name.localeCompare(b.name))
+        );
+        setNewCategory("");
+      }
+    } catch (error) {
+      console.error("Failed to add category:", error);
     }
   }
 
@@ -84,25 +95,29 @@ export default function SettingsPage() {
       alert("Cannot delete default categories.");
       return;
     }
-    if (!confirm(`Delete category "${cat?.name}"? Transactions will be set to uncategorized.`)) return;
+    if (!confirm(`Delete category "${cat?.name}"? Transactions will be set to uncategorized.`))
+      return;
 
-    const supabase = createClient();
-    await supabase.from("categories").delete().eq("id", id);
-    setCategories((prev) => prev.filter((c) => c.id !== id));
+    const res = await fetch(`/api/data/categories?id=${id}`, {
+      method: "DELETE",
+    });
+    if (res.ok) {
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+    }
   }
 
   async function deleteAccount() {
-    if (!confirm("Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently removed.")) return;
+    if (
+      !confirm(
+        "Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently removed."
+      )
+    )
+      return;
     if (!confirm("Final confirmation: Delete account and all data?")) return;
 
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // Delete all user data (cascade will handle most)
-    await supabase.from("profiles").delete().eq("id", user.id);
-    await supabase.auth.signOut();
+    await fetch("/api/auth/logout", { method: "POST" });
     router.push("/");
+    router.refresh();
   }
 
   if (loading) {
@@ -117,7 +132,9 @@ export default function SettingsPage() {
     <div className="max-w-2xl mx-auto space-y-8">
       <header>
         <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
+        <p className="text-sm text-muted-foreground">
+          Manage your account and preferences
+        </p>
       </header>
 
       {message && (

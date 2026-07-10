@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { Budget, Category, Transaction, Profile } from "@/lib/types";
 import { formatCurrency, getMonthKey, getMonthName, getCategoryColor } from "@/lib/utils";
 import { CurrencyCode } from "@/lib/types";
@@ -22,21 +21,24 @@ export default function BudgetsPage() {
   const currency = (profile?.currency || "USD") as CurrencyCode;
 
   async function loadData() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const [profileRes, budgetRes, catRes, transRes] = await Promise.all([
+        fetch("/api/data/profile"),
+        fetch("/api/data/budgets"),
+        fetch("/api/data/categories"),
+        fetch("/api/data/transactions"),
+      ]);
 
-    const [profileRes, budgetRes, catRes, transRes] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).single(),
-      supabase.from("budgets").select("*, category:categories(*)").eq("user_id", user.id),
-      supabase.from("categories").select("*").eq("user_id", user.id).order("name"),
-      supabase.from("transactions").select("*").eq("user_id", user.id).eq("type", "expense"),
-    ]);
-
-    if (profileRes.data) setProfile(profileRes.data);
-    if (budgetRes.data) setBudgets(budgetRes.data);
-    if (catRes.data) setCategories(catRes.data);
-    if (transRes.data) setTransactions(transRes.data);
+      if (profileRes.ok) setProfile(await profileRes.json());
+      if (budgetRes.ok) setBudgets(await budgetRes.json());
+      if (catRes.ok) setCategories(await catRes.json());
+      if (transRes.ok) {
+        const allTrans = await transRes.json();
+        setTransactions(allTrans.filter((t: Transaction) => t.type === "expense"));
+      }
+    } catch (error) {
+      console.error("Failed to load data:", error);
+    }
     setLoading(false);
   }
 
@@ -49,48 +51,50 @@ export default function BudgetsPage() {
     if (!formCategoryId || !formAmount) return;
 
     setSaving(true);
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("budgets")
-      .upsert(
-        {
-          user_id: user.id,
+    try {
+      const res = await fetch("/api/data/budgets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           category_id: formCategoryId,
           month: selectedMonth,
           amount: parseFloat(formAmount),
-        },
-        { onConflict: "user_id,category_id,month" }
-      )
-      .select("*, category:categories(*)")
-      .single();
-
-    if (!error && data) {
-      setBudgets((prev) => {
-        const existing = prev.findIndex(
-          (b) => b.category_id === formCategoryId && b.month === selectedMonth
-        );
-        if (existing >= 0) {
-          const updated = [...prev];
-          updated[existing] = data;
-          return updated;
-        }
-        return [...prev, data];
+        }),
       });
-      setFormCategoryId("");
-      setFormAmount("");
-      setShowForm(false);
+
+      if (res.ok) {
+        const newBudget = await res.json();
+        // Attach category info
+        const cat = categories.find((c) => c.id === formCategoryId);
+        if (cat) newBudget.category = cat;
+
+        setBudgets((prev) => {
+          const existing = prev.findIndex(
+            (b) => b.category_id === formCategoryId && b.month === selectedMonth
+          );
+          if (existing >= 0) {
+            const updated = [...prev];
+            updated[existing] = newBudget;
+            return updated;
+          }
+          return [...prev, newBudget];
+        });
+        setFormCategoryId("");
+        setFormAmount("");
+        setShowForm(false);
+      }
+    } catch (error) {
+      console.error("Failed to add budget:", error);
     }
     setSaving(false);
   }
 
   async function deleteBudget(id: string) {
     if (!confirm("Remove this budget limit?")) return;
-    const supabase = createClient();
-    await supabase.from("budgets").delete().eq("id", id);
-    setBudgets((prev) => prev.filter((b) => b.id !== id));
+    const res = await fetch(`/api/data/budgets?id=${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setBudgets((prev) => prev.filter((b) => b.id !== id));
+    }
   }
 
   const monthBudgets = budgets.filter((b) => b.month === selectedMonth);
@@ -262,8 +266,8 @@ export default function BudgetsPage() {
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground text-right">
                   {percentage.toFixed(0)}% used
-                  {percentage >= 100 && " — Over budget!"}
-                  {percentage >= 80 && percentage < 100 && " — Almost there"}
+                  {percentage >= 100 && " - Over budget!"}
+                  {percentage >= 80 && percentage < 100 && " - Almost there"}
                 </p>
               </article>
             );

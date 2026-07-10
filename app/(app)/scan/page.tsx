@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { preprocessImage, recognizeText, OcrProgress } from "@/lib/ocr";
 import { ReceiptItem, ReceiptParseResult, Category } from "@/lib/types";
 import {
@@ -31,14 +30,15 @@ export default function ScanPage() {
   const router = useRouter();
 
   async function loadCategories() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data } = await supabase
-      .from("categories")
-      .select("*")
-      .eq("user_id", user.id);
-    if (data) setCategories(data);
+    try {
+      const res = await fetch("/api/data/categories");
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data);
+      }
+    } catch (err) {
+      console.error("Failed to load categories:", err);
+    }
   }
 
   useEffect(() => {
@@ -109,31 +109,30 @@ export default function ScanPage() {
     if (editingItems.length === 0) return;
 
     setStep("saving");
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
 
     try {
-      // Map items to transactions
-      const transactions = editingItems.map((item) => {
+      // Save each item as a transaction
+      const promises = editingItems.map((item) => {
         const category = categories.find(
           (c) => c.name.toLowerCase() === item.category.toLowerCase()
         );
-        return {
-          user_id: user.id,
-          category_id: category?.id || null,
-          type: "expense" as const,
-          amount: item.price,
-          note: `${item.name}${parseResult?.merchant ? ` (${parseResult.merchant})` : ""}`,
-          date,
-        };
+        return fetch("/api/data/transactions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            category_id: category?.id || null,
+            type: "expense",
+            amount: item.price,
+            note: `${item.name}${parseResult?.merchant ? ` (${parseResult.merchant})` : ""}`,
+            date,
+          }),
+        });
       });
 
-      const { error: insertError } = await supabase
-        .from("transactions")
-        .insert(transactions);
+      const results = await Promise.all(promises);
+      const allOk = results.every((r) => r.ok);
 
-      if (insertError) throw insertError;
+      if (!allOk) throw new Error("Some transactions failed to save");
 
       setStep("done");
       setTimeout(() => router.push("/transactions"), 1500);

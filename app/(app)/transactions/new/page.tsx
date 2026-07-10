@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { Category } from "@/lib/types";
 import { Save, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -19,15 +18,15 @@ export default function NewTransactionPage() {
   const router = useRouter();
 
   async function loadCategories() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data } = await supabase
-      .from("categories")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("name");
-    if (data) setCategories(data);
+    try {
+      const res = await fetch("/api/data/categories");
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data);
+      }
+    } catch (err) {
+      console.error("Failed to load categories:", err);
+    }
   }
 
   useEffect(() => {
@@ -39,24 +38,29 @@ export default function NewTransactionPage() {
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const res = await fetch("/api/data/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type,
+          amount: parseFloat(amount),
+          category_id: categoryId || null,
+          date,
+          note: note || null,
+        }),
+      });
 
-    const { error: insertError } = await supabase.from("transactions").insert({
-      user_id: user.id,
-      type,
-      amount: parseFloat(amount),
-      category_id: categoryId || null,
-      date,
-      note: note || null,
-    });
-
-    if (insertError) {
-      setError(insertError.message);
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Failed to save transaction");
+        setLoading(false);
+      } else {
+        router.push("/transactions");
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
       setLoading(false);
-    } else {
-      router.push("/transactions");
     }
   }
 

@@ -3,13 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { CURRENCIES, DEFAULT_CATEGORIES } from "@/lib/types";
+import { CURRENCIES } from "@/lib/types";
 import { UserPlus } from "lucide-react";
 
 export default function SignupPage() {
   const [step, setStep] = useState<1 | 2>(1);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [currency, setCurrency] = useState("USD");
@@ -28,45 +27,25 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
-
-    // Sign up
-    const { data, error: signupError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (signupError) {
-      setError(signupError.message);
-      setLoading(false);
-      return;
-    }
-
-    if (data.user) {
-      // Create profile
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: data.user.id,
-        display_name: displayName || null,
-        currency,
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, displayName, currency }),
       });
 
-      if (profileError) {
-        setError(profileError.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Signup failed");
         setLoading(false);
-        return;
+      } else {
+        router.push("/dashboard");
+        router.refresh();
       }
-
-      // Create default categories
-      const categories = DEFAULT_CATEGORIES.map((name) => ({
-        user_id: data.user!.id,
-        name,
-        is_default: true,
-      }));
-
-      await supabase.from("categories").insert(categories);
-
-      router.push("/dashboard");
-      router.refresh();
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setLoading(false);
     }
   };
 
@@ -95,17 +74,18 @@ export default function SignupPage() {
           {step === 1 ? (
             <>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium mb-1">
-                  Email
+                <label htmlFor="username" className="block text-sm font-medium mb-1">
+                  Username
                 </label>
                 <input
-                  id="email"
-                  type="email"
+                  id="username"
+                  type="text"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  minLength={3}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  placeholder="you@example.com"
+                  placeholder="Choose a username"
                 />
               </div>
               <div>

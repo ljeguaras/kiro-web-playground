@@ -1,3 +1,9 @@
+export interface User {
+  id: string;
+  username: string;
+  passwordHash: string;
+}
+
 export interface Profile {
   id: string;
   display_name: string | null;
