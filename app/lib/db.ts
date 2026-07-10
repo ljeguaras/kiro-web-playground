@@ -1,45 +1,32 @@
-import fs from "fs/promises";
-import path from "path";
 import { User } from "@/app/lib/definitions";
 
-const DB_PATH = path.join(process.cwd(), "data", "users.json");
-
-async function readUsers(): Promise<User[]> {
-  try {
-    const data = await fs.readFile(DB_PATH, "utf-8");
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-}
-
-async function writeUsers(users: User[]): Promise<void> {
-  await fs.writeFile(DB_PATH, JSON.stringify(users, null, 2), "utf-8");
-}
+// In-memory store - users reset on cold starts (acceptable for demo auth)
+const users = new Map<string, User>();
 
 export async function getUserByUsername(
   username: string
 ): Promise<User | undefined> {
-  const users = await readUsers();
-  return users.find((user) => user.username === username);
+  for (const user of users.values()) {
+    if (user.username === username) {
+      return user;
+    }
+  }
+  return undefined;
 }
 
 export async function getUserById(id: string): Promise<User | undefined> {
-  const users = await readUsers();
-  return users.find((user) => user.id === id);
+  return users.get(id);
 }
 
 export async function createUser(
   username: string,
   hashedPassword: string
 ): Promise<User> {
-  const users = await readUsers();
   const newUser: User = {
     id: crypto.randomUUID(),
     username,
     password: hashedPassword,
   };
-  users.push(newUser);
-  await writeUsers(users);
+  users.set(newUser.id, newUser);
   return newUser;
 }

@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-const secretKey = process.env.SESSION_SECRET;
-if (!secretKey) {
-  throw new Error(
-    "SESSION_SECRET environment variable is required. Please set it in .env.local"
-  );
+function getEncodedKey(): Uint8Array | null {
+  const secretKey = process.env.SESSION_SECRET;
+  if (!secretKey) {
+    return null;
+  }
+  return new TextEncoder().encode(secretKey);
 }
-const encodedKey = new TextEncoder().encode(secretKey);
 
 async function decryptSession(session: string | undefined = "") {
+  const encodedKey = getEncodedKey();
+  if (!encodedKey) {
+    return undefined;
+  }
   try {
     const { payload } = await jwtVerify(session, encodedKey, {
       algorithms: ["HS256"],
@@ -26,6 +30,15 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isProtectedRoute = path.startsWith("/dashboard");
   const isPublicRoute = publicRoutes.includes(path);
+
+  const encodedKey = getEncodedKey();
+  if (!encodedKey) {
+    // No secret configured - redirect protected routes to login
+    if (isProtectedRoute) {
+      return NextResponse.redirect(new URL("/login", request.nextUrl));
+    }
+    return NextResponse.next();
+  }
 
   const cookie = request.cookies.get("session")?.value;
   const session = await decryptSession(cookie);

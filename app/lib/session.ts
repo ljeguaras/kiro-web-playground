@@ -3,15 +3,18 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { SessionPayload } from "@/app/lib/definitions";
 
-const secretKey = process.env.SESSION_SECRET;
-if (!secretKey) {
-  throw new Error(
-    "SESSION_SECRET environment variable is required. Please set it in .env.local"
-  );
+function getEncodedKey(): Uint8Array {
+  const secretKey = process.env.SESSION_SECRET;
+  if (!secretKey) {
+    throw new Error(
+      "SESSION_SECRET environment variable is required. Please set it in .env.local"
+    );
+  }
+  return new TextEncoder().encode(secretKey);
 }
-const encodedKey = new TextEncoder().encode(secretKey);
 
 export async function encrypt(payload: SessionPayload) {
+  const encodedKey = getEncodedKey();
   return new SignJWT(payload as unknown as Record<string, unknown>)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -22,6 +25,7 @@ export async function encrypt(payload: SessionPayload) {
 export async function decrypt(
   session: string | undefined = ""
 ): Promise<SessionPayload | undefined> {
+  const encodedKey = getEncodedKey();
   try {
     const { payload } = await jwtVerify(session, encodedKey, {
       algorithms: ["HS256"],
