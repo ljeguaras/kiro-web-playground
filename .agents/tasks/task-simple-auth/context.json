@@ -1,0 +1,27 @@
+{
+  "project_type": "Next.js 16.2.4 App Router with React 19, TypeScript, Tailwind CSS 4",
+  "language": "TypeScript",
+  "build_system": "bun (npm scripts via bun). Note: npm/node are NOT directly available; use bun exclusively.",
+  "test_framework": "No test framework configured yet. Use bun run build for validation.",
+  "build_command": "bun run build",
+  "test_command": "bun run lint",
+  "verification_instructions": "1. Run 'bun run build' to verify the app compiles without errors. 2. Run 'bun run lint' to check for linting issues.",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "Run 'bun install' in /projects/sandbox/kiro-web-playground to install dependencies. Dependencies are already installed.",
+  "environment_constraints": "OPEN_INTERNET network mode. bun 1.2.14 is available. npm/node/npx are NOT available - use 'bun' and 'bunx' instead. This is Next.js 16 which uses proxy.ts instead of middleware.ts. Read node_modules/next/dist/docs/ for API details.",
+  "contribution_requirements": "AGENTS.md: This is NOT the Next.js you know. This version has breaking changes. Read the relevant guide in node_modules/next/dist/docs/ before writing any code. Use proxy.ts (not middleware.ts). Use responsive Tailwind CSS utility classes. Use semantic HTML for all layout sections.",
+  "key_patterns": "Next.js 16 App Router patterns: Server Components by default, Client Components with 'use client' directive, Server Actions with 'use server', useActionState for form state, proxy.ts for route protection (replaces middleware.ts), cookies() API from 'next/headers' for session cookies, jose library for JWT encryption. Tailwind CSS 4 uses @import 'tailwindcss' (already configured in globals.css).",
+  "relevant_files": [
+    "app/layout.tsx",
+    "app/page.tsx",
+    "app/globals.css",
+    "next.config.ts",
+    "tsconfig.json",
+    "package.json",
+    "node_modules/next/dist/docs/01-app/02-guides/authentication.md",
+    "node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md",
+    "node_modules/next/dist/docs/01-app/01-getting-started/07-mutating-data.md",
+    "node_modules/next/dist/docs/01-app/01-getting-started/05-server-and-client-components.md"
+  ],
+  "directory_structure": "Root: app/ (App Router pages/layouts), public/ (static assets). App uses path alias @/* mapped to ./*. Tailwind CSS 4 configured via postcss.config.mjs with @tailwindcss/postcss plugin."
+}

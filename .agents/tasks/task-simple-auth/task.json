@@ -1,0 +1,7 @@
+{
+  "task_id": "task-simple-auth",
+  "task_description": "Build a simple authentication system (signup/login/logout) without email verification using JSON file storage, JWT sessions, and Next.js 16 proxy for route protection.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001"],
+  "blocked_reason": null
+}
