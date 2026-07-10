@@ -4,6 +4,11 @@ import { cookies } from "next/headers";
 import { SessionPayload } from "@/app/lib/definitions";
 
 const secretKey = process.env.SESSION_SECRET;
+if (!secretKey) {
+  throw new Error(
+    "SESSION_SECRET environment variable is required. Please set it in .env.local"
+  );
+}
 const encodedKey = new TextEncoder().encode(secretKey);
 
 export async function encrypt(payload: SessionPayload) {
@@ -50,12 +55,13 @@ export async function updateSession() {
     return null;
   }
 
-  const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const newSession = await encrypt({ userId: payload.userId, expiresAt });
 
-  cookieStore.set("session", session, {
+  cookieStore.set("session", newSession, {
     httpOnly: true,
     secure: true,
-    expires: expires,
+    expires: expiresAt,
     sameSite: "lax",
     path: "/",
   });
