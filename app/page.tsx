@@ -1,65 +1,141 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Camera, PieChart, Wallet, Sparkles } from "lucide-react";
 
-export default function Home() {
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="flex-1">
+      {/* Hero Section */}
+      <header className="relative overflow-hidden">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
+              Track Expenses.{" "}
+              <span className="text-primary">Snap a Receipt.</span>
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+              Stop manually typing every expense. Just take a photo of your
+              receipt and our AI will identify each item, expand abbreviations,
+              and categorize everything automatically.
+            </p>
+            <div className="mt-10 flex items-center justify-center gap-4">
+              <Link
+                href="/signup"
+                className="rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition-opacity"
+              >
+                Get Started Free
+              </Link>
+              <Link
+                href="/login"
+                className="rounded-lg border border-border px-6 py-3 text-sm font-semibold hover:bg-secondary transition-colors"
+              >
+                Log In
+              </Link>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+      </header>
+
+      {/* Features Section */}
+      <section className="py-16 bg-secondary/50">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h2 className="text-center text-3xl font-bold">
+            Budgeting Made Effortless
+          </h2>
+          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <FeatureCard
+              icon={<Camera className="h-8 w-8 text-primary" />}
+              title="Snap & Track"
+              description="Take a photo of any receipt. AI identifies items like 'CHK BRST' as 'Chicken Breast' and categorizes them automatically."
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <FeatureCard
+              icon={<Sparkles className="h-8 w-8 text-primary" />}
+              title="AI-Powered"
+              description="Understands abbreviated merchant names, expands them, and assigns categories: Food, Hygiene, Cleaning, Drinks, and more."
+            />
+            <FeatureCard
+              icon={<PieChart className="h-8 w-8 text-primary" />}
+              title="Visual Insights"
+              description="See where your money goes with beautiful charts. Track spending trends and stay within your monthly budgets."
+            />
+            <FeatureCard
+              icon={<Wallet className="h-8 w-8 text-primary" />}
+              title="Budget Control"
+              description="Set monthly budgets per category. Get visual alerts when you're nearing your limits."
+            />
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* How it Works */}
+      <section className="py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h2 className="text-center text-3xl font-bold">
+            How It Works
+          </h2>
+          <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
+            <StepCard
+              step="1"
+              title="Snap Your Receipt"
+              description="Take a photo or upload an image of your grocery, restaurant, or store receipt."
+            />
+            <StepCard
+              step="2"
+              title="AI Analyzes"
+              description="Our AI reads each item, understands abbreviations, assigns categories, and extracts prices."
+            />
+            <StepCard
+              step="3"
+              title="Review & Save"
+              description="Check the itemized list, make any adjustments, and save. Done in seconds!"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border py-8">
+        <div className="mx-auto max-w-7xl px-4 text-center text-sm text-muted-foreground">
+          <p>Budget Tracker - Smart Expense Management. Built with Next.js, Supabase & AI.</p>
+        </div>
+      </footer>
+    </main>
+  );
+}
+
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="mb-4">{icon}</div>
+      <h3 className="text-lg font-semibold">{title}</h3>
+      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+    </article>
+  );
+}
+
+function StepCard({
+  step,
+  title,
+  description,
+}: {
+  step: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <article className="text-center">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg">
+        {step}
+      </div>
+      <h3 className="mt-4 text-lg font-semibold">{title}</h3>
+      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+    </article>
   );
 }
