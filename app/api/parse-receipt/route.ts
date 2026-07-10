@@ -3,21 +3,22 @@ import { NextRequest, NextResponse } from "next/server";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-const SYSTEM_PROMPT = `You are a receipt parser AI. Given raw OCR text from a receipt, you must:
+const SYSTEM_PROMPT = `You are a receipt parser AI. You can analyze both:
+1. Raw OCR text from a receipt
+2. Receipt images directly
 
-1. Extract each line item with its price. Look for product names followed by prices.
-2. Expand abbreviated product names to their full, readable names. Common abbreviations:
+Extract the following:
+1. Each line item with its price. Expand abbreviated product names to their full, readable names.
+   Common abbreviations:
    - "CHK BRST" = "Chicken Breast"
    - "COLG TP" = "Colgate Toothpaste"
    - "CLNX BLCH" = "Clorox Bleach"
    - "WHL MLK" = "Whole Milk"
-   - "BRN BRD" = "Brown Bread"
-   - "COCA 1.5L" = "Coca-Cola 1.5L"
    - Use your knowledge to expand any abbreviated names you recognize.
-3. Categorize each item into EXACTLY one of these categories: Food, Drinks, Hygiene, Cleaning, Household, Entertainment, Transportation, Bills, Savings, Other
-4. Extract the total amount if visible (look for "TOTAL", "SUBTOTAL", "AMOUNT DUE")
-5. Extract the date if visible
-6. Extract the merchant/store name if visible (usually at the top)
+2. Categorize each item into EXACTLY one of these categories: Food, Drinks, Hygiene, Cleaning, Household, Entertainment, Transportation, Bills, Savings, Other
+3. Extract the total amount if visible (look for "TOTAL", "SUBTOTAL", "AMOUNT DUE")
+4. Extract the date if visible
+5. Extract the merchant/store name if visible (usually at the top)
 
 IMPORTANT RULES:
 - Always return valid JSON
@@ -31,14 +32,7 @@ Return ONLY a JSON object in this exact format (no markdown, no code blocks):
 
 export async function POST(request: NextRequest) {
   try {
-    const { ocrText } = await request.json();
-
-    if (!ocrText || typeof ocrText !== "string") {
-      return NextResponse.json(
-        { error: "No OCR text provided" },
-        { status: 400 }
-      );
-    }
+    const contentType = request.headers.get("content-type") ?? "";
 
     if (!GEMINI_API_KEY) {
       return NextResponse.json(
@@ -47,10 +41,64 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await fetch(GEMINI_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    let requestBody;
+
+    // Handle image upload (Gemini Vision - direct image analysis, no Tesseract needed)
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      const file = formData.get("receipt") as File | null;
+
+      if (!file) {
+        return NextResponse.json(
+          { error: "No receipt image provided" },
+          { status: 400 }
+        );
+      }
+
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/heic"];
+      if (!allowedTypes.includes(file.type)) {
+        return NextResponse.json(
+          { error: "Unsupported image format. Use JPEG, PNG, WebP, or HEIC." },
+          { status: 400 }
+        );
+      }
+
+      // Convert file to base64 for Gemini Vision
+      const bytes = await file.arrayBuffer();
+      const base64 = Buffer.from(bytes).toString("base64");
+
+      requestBody = {
+        contents: [
+          {
+            parts: [
+              { text: `${SYSTEM_PROMPT}\n\nAnalyze this receipt image and return the JSON result.` },
+              {
+                inlineData: {
+                  mimeType: file.type,
+                  data: base64,
+                },
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 4096,
+        },
+      };
+    }
+    // Handle JSON body with OCR text (legacy support for Tesseract flow)
+    else {
+      const { ocrText } = await request.json();
+
+      if (!ocrText || typeof ocrText !== "string") {
+        return NextResponse.json(
+          { error: "No OCR text or image provided" },
+          { status: 400 }
+        );
+      }
+
+      requestBody = {
         contents: [
           {
             parts: [
@@ -63,7 +111,13 @@ export async function POST(request: NextRequest) {
           temperature: 0.1,
           maxOutputTokens: 2048,
         },
-      }),
+      };
+    }
+
+    const response = await fetch(GEMINI_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
