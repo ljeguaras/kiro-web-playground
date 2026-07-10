@@ -203,16 +203,31 @@ export function addBudget(
   }
 ): Budget {
   const store = getStore();
+  const budgets = store.budgets.get(userId) || [];
+
+  // Upsert: replace existing budget with same category_id and month
+  const existingIndex = budgets.findIndex(
+    (b) => b.category_id === data.category_id && b.month === data.month
+  );
+
   const budget: Budget = {
-    id: crypto.randomUUID(),
+    id: existingIndex >= 0 ? budgets[existingIndex].id : crypto.randomUUID(),
     user_id: userId,
     category_id: data.category_id,
     month: data.month,
     amount: data.amount,
-    created_at: new Date().toISOString(),
+    created_at:
+      existingIndex >= 0
+        ? budgets[existingIndex].created_at
+        : new Date().toISOString(),
   };
-  const budgets = store.budgets.get(userId) || [];
-  budgets.push(budget);
+
+  if (existingIndex >= 0) {
+    budgets[existingIndex] = budget;
+  } else {
+    budgets.push(budget);
+  }
+
   store.budgets.set(userId, budgets);
   return budget;
 }
@@ -224,4 +239,50 @@ export function deleteBudget(userId: string, budgetId: string): boolean {
   if (filtered.length === budgets.length) return false;
   store.budgets.set(userId, filtered);
   return true;
+}
+
+// Delete all user data
+export function deleteUser(userId: string): boolean {
+  const store = getStore();
+  const user = store.users.get(userId);
+  if (!user) return false;
+
+  store.usernameIndex.delete(user.username.toLowerCase());
+  store.users.delete(userId);
+  store.profiles.delete(userId);
+  store.categories.delete(userId);
+  store.transactions.delete(userId);
+  store.budgets.delete(userId);
+
+  return true;
+}
+
+// Batch add transactions (atomic)
+export function addTransactions(
+  userId: string,
+  items: Array<{
+    category_id: string | null;
+    type: "income" | "expense";
+    amount: number;
+    note: string | null;
+    date: string;
+  }>
+): Transaction[] {
+  const store = getStore();
+  const transactions = store.transactions.get(userId) || [];
+
+  const newTransactions: Transaction[] = items.map((data) => ({
+    id: crypto.randomUUID(),
+    user_id: userId,
+    category_id: data.category_id,
+    type: data.type,
+    amount: data.amount,
+    note: data.note,
+    date: data.date,
+    created_at: new Date().toISOString(),
+  }));
+
+  transactions.push(...newTransactions);
+  store.transactions.set(userId, transactions);
+  return newTransactions;
 }

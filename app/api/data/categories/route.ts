@@ -57,6 +57,16 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    // Explicit ownership check: verify the category belongs to this user
+    const userCategories = getCategories(session.userId);
+    const ownsResource = userCategories.some((c) => c.id === id);
+    if (!ownsResource) {
+      return NextResponse.json(
+        { error: "Category not found" },
+        { status: 404 }
+      );
+    }
+
     const deleted = deleteCategory(session.userId, id);
     if (!deleted) {
       return NextResponse.json(

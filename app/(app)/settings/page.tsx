@@ -115,7 +115,7 @@ export default function SettingsPage() {
       return;
     if (!confirm("Final confirmation: Delete account and all data?")) return;
 
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/delete", { method: "POST" });
     router.push("/");
     router.refresh();
   }

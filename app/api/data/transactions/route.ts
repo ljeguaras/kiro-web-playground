@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getTransactions, addTransaction, deleteTransaction } from "@/lib/store";
+import {
+  getTransactions,
+  addTransaction,
+  addTransactions,
+  deleteTransaction,
+} from "@/lib/store";
 
 export async function GET() {
   const session = await getSession();
@@ -20,6 +25,30 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
+
+    // Support batch creation: if body is an array, create all transactions atomically
+    if (Array.isArray(body)) {
+      const items = body.map((item) => {
+        if (!item.type || item.amount === undefined || !item.date) {
+          throw new Error("Each item must have type, amount, and date");
+        }
+        if (item.type !== "income" && item.type !== "expense") {
+          throw new Error("type must be 'income' or 'expense'");
+        }
+        return {
+          category_id: item.category_id || null,
+          type: item.type as "income" | "expense",
+          amount: Number(item.amount),
+          note: item.note || null,
+          date: item.date,
+        };
+      });
+
+      const transactions = addTransactions(session.userId, items);
+      return NextResponse.json(transactions, { status: 201 });
+    }
+
+    // Single transaction creation
     const { category_id, type, amount, note, date } = body;
 
     if (!type || amount === undefined || !date) {
@@ -48,7 +77,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Add transaction error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 }
     );
   }
@@ -68,6 +97,16 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         { error: "Transaction ID is required" },
         { status: 400 }
+      );
+    }
+
+    // Explicit ownership check: verify the transaction belongs to this user
+    const userTransactions = getTransactions(session.userId);
+    const ownsResource = userTransactions.some((t) => t.id === id);
+    if (!ownsResource) {
+      return NextResponse.json(
+        { error: "Transaction not found" },
+        { status: 404 }
       );
     }
 

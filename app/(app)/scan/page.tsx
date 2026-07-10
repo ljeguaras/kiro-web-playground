@@ -111,28 +111,27 @@ export default function ScanPage() {
     setStep("saving");
 
     try {
-      // Save each item as a transaction
-      const promises = editingItems.map((item) => {
+      // Save all items as transactions in a single atomic batch request
+      const items = editingItems.map((item) => {
         const category = categories.find(
           (c) => c.name.toLowerCase() === item.category.toLowerCase()
         );
-        return fetch("/api/data/transactions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            category_id: category?.id || null,
-            type: "expense",
-            amount: item.price,
-            note: `${item.name}${parseResult?.merchant ? ` (${parseResult.merchant})` : ""}`,
-            date,
-          }),
-        });
+        return {
+          category_id: category?.id || null,
+          type: "expense",
+          amount: item.price,
+          note: `${item.name}${parseResult?.merchant ? ` (${parseResult.merchant})` : ""}`,
+          date,
+        };
       });
 
-      const results = await Promise.all(promises);
-      const allOk = results.every((r) => r.ok);
+      const res = await fetch("/api/data/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(items),
+      });
 
-      if (!allOk) throw new Error("Some transactions failed to save");
+      if (!res.ok) throw new Error("Failed to save transactions");
 
       setStep("done");
       setTimeout(() => router.push("/transactions"), 1500);

@@ -62,6 +62,16 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    // Explicit ownership check: verify the budget belongs to this user
+    const userBudgets = getBudgets(session.userId);
+    const ownsResource = userBudgets.some((b) => b.id === id);
+    if (!ownsResource) {
+      return NextResponse.json(
+        { error: "Budget not found" },
+        { status: 404 }
+      );
+    }
+
     const deleted = deleteBudget(session.userId, id);
     if (!deleted) {
       return NextResponse.json(
