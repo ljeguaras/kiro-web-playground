@@ -1,0 +1,7 @@
+{
+  "task_id": "task-qa-audit-budget-tracker",
+  "task_description": "Perform an exhaustive manual QA audit of the Budget Tracker web app (Next.js 16 / React 19 / Supabase / Gemini) that lives on origin/feature/budget-tracker (commit d563b5edd90ab59e8c092bc456c64306110de97b), and produce a full QA report (QA_AUDIT_REPORT.md) covering all 9 deliverable sections: QA Summary, Bug Report Table, Detailed Bug Reports, UX Suggestions, Security Findings, Accessibility Findings, Performance Findings, Production Readiness Score (0-100), and Final Recommendation. Live-test everything runnable without external credentials; code-review everything gated behind missing Supabase/Gemini keys and mark it Blocked (not passed/failed). main is only a stock create-next-app starter, so the feature branch is the real audit target.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002"],
+  "blocked_reason": null
+}
