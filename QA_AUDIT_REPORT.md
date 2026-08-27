@@ -52,7 +52,7 @@ Everything gated behind **real** Supabase/Gemini credentials (actual authenticat
   - Auth: `/login`, `/signup`
   - Authenticated app: `/dashboard`, `/transactions`, `/transactions/new`, `/budgets`, `/settings`, `/scan`
   - API / system: `/api/parse-receipt`, `/auth/callback`, middleware (`middleware.ts`), `_not-found`
-- **Total tests / checks executed:** 68 (build, lint, dependency audit, per-route HTTP probes in two passes, form-validation review, routing/redirect checks, and per-file code-level checks across functional, security, accessibility, and performance dimensions)
+- **Total tests / checks executed:** 69 (build, lint, dependency audit, per-route HTTP probes in two passes, form-validation review, routing/redirect checks, submit-handler session-loss review, and per-file code-level checks across functional, security, accessibility, and performance dimensions)
 - **Passed:** 14
   - Static build compiles (0 type errors, 13 routes generated)
   - Lint passes (0 errors, 1 warning)
@@ -68,7 +68,7 @@ Everything gated behind **real** Supabase/Gemini credentials (actual authenticat
   - DB CHECK constraints (`amount > 0`, `type IN ('income','expense')`) present
   - Semantic HTML landmarks (`<main>`, `<header>`, `<nav>`, `<section>`, `<article>`, `<footer>`) used across pages
   - Responsive Tailwind breakpoints (`sm:`/`md:`/`lg:`) used throughout layouts
-- **Failed:** 8 (BUG-001 through BUG-008 below reproduce or are provable from source)
+- **Failed:** 9 (BUG-001 through BUG-008 and BUG-017 below reproduce or are provable from source)
 - **Blocked:** 10 - **reason: requires Supabase/Gemini credentials not present in the environment**
   1. Real login (email/password) - end-to-end
   2. Google OAuth login + `/auth/callback` code exchange
@@ -105,6 +105,7 @@ Everything gated behind **real** Supabase/Gemini credentials (actual authenticat
 | BUG-014 | Low | P3 | root config | `middleware` file convention is deprecated in Next 16.2.4; build and dev both warn `The "middleware" file convention is deprecated. Please use "proxy" instead.` |
 | BUG-015 | Low | P3 | `app/auth/callback/route.ts` | The `next` redirect param is used unvalidated in `NextResponse.redirect(\`${origin}${next}\`)`. It is prefixed with `origin` (mitigates cross-origin open redirect) but is not restricted to an allow-list of internal paths; a crafted `next` can still bounce users to unexpected internal routes. Hardening recommended. |
 | BUG-016 | Low | P3 | scan / new-transaction amount inputs | `parseFloat(amount)` with no upper bound and no NaN guard after the DOM layer; `min` is enforced by HTML5 only, so programmatic/bypassed submits can send `NaN` or unbounded values (DB `CHECK (amount > 0)` is the only real backstop). |
+| BUG-017 | Medium | P2 | new-transaction / scan / settings submit handlers | The `if (!user) return;` early-return fires **after** the loading flag is set (`setLoading(true)` / `setStep("saving")` / `setSaving(true)`) and never resets it, so an expired session mid-submit permanently disables the button or strands the spinner with no error and no recovery. |
 
 ---
 
@@ -184,7 +185,7 @@ Everything gated behind **real** Supabase/Gemini credentials (actual authenticat
 - **Steps to reproduce:** `npm audit`.
 - **Expected result:** No high-severity advisories in production dependencies.
 - **Actual result:** 6 high + 1 low; fixes available via `npm audit fix` (some transitive).
-- **Suggested fix:** Run `npm audit fix`, bump Next.js to the latest patched 16.x, re-run build/lint, and add `npm audit` (or Dependabot/Renovate) to CI to prevent regressions.
+- **Suggested fix:** Run `npm audit fix` for the transitive advisories, then treat the Next.js upgrade as a deliberate step, not a drop-in patch. Note that the full `npm audit fix --force` remediation reports it "Will install next@16.3.3, which is outside the stated dependency range" - that is a **breaking major/minor bump** that requires a full `npm run build` and `npm run lint` re-verification (and a middleware/proxy regression check) rather than a clean patch. Pin to the lowest patched version that resolves the high-severity advisories, re-run build/lint, and add `npm audit` (or Dependabot/Renovate) to CI to prevent regressions.
 - **Screenshot reference:** N/A - CLI output.
 
 ### BUG-010 - Money handled as floating-point Number (Medium / P2)
@@ -228,10 +229,10 @@ Everything gated behind **real** Supabase/Gemini credentials (actual authenticat
 - **Screenshot reference:** N/A - CLI output.
 
 ### BUG-015 - OAuth `next` redirect param not allow-listed (Low / P3)
-- **Description:** `app/auth/callback/route.ts` reads `next` from the query and redirects to `` `${origin}${next}` ``. Prefixing `origin` blocks cross-origin open redirects, but `next` is otherwise unvalidated, so a crafted value can route users to arbitrary internal paths (or, via `//evil.com`-style inputs combined with certain parsers, be risky). Hardening is recommended.
+- **Description:** `app/auth/callback/route.ts` reads `next` from the query and redirects to `` `${origin}${next}` ``. Because `next` is interpolated *after* `origin`, even a protocol-relative payload like `next=//evil.com` resolves to `https://<host>//evil.com`, which is a same-origin path, so this is **not** an external open redirect. The residual risk is scoped to internal-path redirection only: `next` is otherwise unvalidated, so a crafted value can bounce an authenticated user to any arbitrary internal route rather than the intended `/dashboard`. Hardening is recommended.
 - **Steps to reproduce (code-level):** Inspect the route; note `next` used without an allow-list.
 - **Expected result:** `next` validated against an allow-list of known internal paths (default `/dashboard`).
-- **Actual result:** Any internal path accepted.
+- **Actual result:** Any internal path is accepted (cross-origin redirection is already prevented by the `origin` prefix).
 - **Suggested fix:** Validate that `next` starts with a single `/` (not `//`) and matches a known route prefix; otherwise fall back to `/dashboard`.
 - **Screenshot reference:** N/A - code-level.
 
@@ -243,6 +244,18 @@ Everything gated behind **real** Supabase/Gemini credentials (actual authenticat
 - **Suggested fix:** Parse and validate explicitly (finite, > 0, sensible max) before insert; show inline validation copy.
 - **Screenshot reference:** N/A - code-level.
 
+### BUG-017 - Loading flag never resets on the `!user` early return, stranding the UI (Medium / P2)
+- **Description:** Three submit handlers set a busy flag and only afterwards check for a session, returning early without clearing it:
+  - `app/(app)/transactions/new/page.tsx` `handleSubmit`: `setLoading(true)` then `const { data: { user } } = await supabase.auth.getUser(); if (!user) return;` - `setLoading(false)` is only reached on the insert-error path, so a null user leaves the Save button permanently `disabled` with the "Saving..." label.
+  - `app/(app)/scan/page.tsx` `handleSave`: `setStep("saving")` then `if (!user) return;` - the page is stuck on the "Saving transactions..." spinner with no error step and no way back.
+  - `app/(app)/settings/page.tsx` `saveProfile`: `setSaving(true)` then `if (!user) return;` - the Save button stays disabled showing "Saving...".
+  This is distinct from BUG-006 (silent load-time failures) and BUG-007 (double-submit race): it is a submit-time stuck-state that occurs specifically when the session expires between page load and submit.
+- **Steps to reproduce (code-level; live blocked by BUG-001 + missing creds):** Inspect each handler; note the busy flag is set before the `if (!user) return;` guard and is never reset on that branch. To trigger: let the session expire, then submit the form.
+- **Expected result:** On a missing/expired session the handler resets the busy flag, surfaces a friendly "Your session has expired, please sign in again" message, and/or redirects to `/login`.
+- **Actual result:** The button is permanently disabled or the spinner is stranded; the user gets no feedback and cannot retry without a full page reload.
+- **Suggested fix:** Reset the busy flag before returning (e.g. `if (!user) { setLoading(false); setError("Your session has expired. Please sign in again."); return; }`), or wrap the whole handler in `try/finally` that clears the flag; in `scan`, transition to the existing `"error"` step instead of returning. Render any new error copy in a semantic `<div role="alert">` with responsive Tailwind utilities to match the existing error styling.
+- **Screenshot reference:** N/A - code-level.
+
 ---
 
 ## 4. UX Improvement Suggestions
@@ -252,11 +265,12 @@ Everything gated behind **real** Supabase/Gemini credentials (actual authenticat
 3. **Friendly error copy (BUG-005).** Replace raw provider errors with human messages; keep success toasts consistent (settings uses a green banner; other pages just navigate away with no confirmation).
 4. **Delete-account clarity (BUG-004).** After fixing the auth-deletion gap, tell the user exactly what is removed and confirm completion.
 5. **Signup 2-step flow feedback.** Step 1 "Continue" only advances local state; there is no validation that the email is unique or the password meets policy until final submit. Consider validating step 1 before advancing and showing a step indicator (currently only the subtitle changes).
-6. **Filters usability (transactions).** No result-count feedback when filters produce zero rows beyond the generic empty state; a "clear filters" is present but the active-filter state isn't summarized.
-7. **Charts empty states (dashboard).** Pie and line charts already handle empty data with a message, but the bar chart always renders even with all-zero data - consider a consistent empty state.
-8. **Reduced-motion.** Spinners, chart animations, and OCR progress ignore `prefers-reduced-motion`; honor it for accessibility and comfort.
-9. **Currency formatting.** `formatCurrency` uses a symbol + `toFixed(2)` for all currencies, so JPY (no minor units) shows `¥100.00`. Use `Intl.NumberFormat` per currency.
-10. **Consistency.** Success feedback, button loading labels, and confirmation dialogs (native `confirm`/`alert`) vary across pages; native dialogs are not styleable and break the visual theme - consider an in-app modal (semantic `<dialog>` or an accessible modal component with responsive Tailwind).
+6. **Budgets "Total Spent" vs "Total Budget" conflation (`app/(app)/budgets/page.tsx`).** `totalSpent` sums *all* monthly expense transactions regardless of whether a matching budget row exists, while `totalBudget` sums only categories that have a defined budget. So a user who budgets one category but spends across several sees Total Spent exceed Total Budget (and turn red via `totalSpent > totalBudget`) even when no budgeted category is actually over its limit, conflating unbudgeted spending with over-budget. Consider either summing only expenses whose category has a budget for an apples-to-apples comparison, or relabeling the cards (e.g. "Total Spent (all categories)") so the comparison is not misread.
+7. **Filters usability (transactions).** No result-count feedback when filters produce zero rows beyond the generic empty state; a "clear filters" is present but the active-filter state isn't summarized.
+8. **Charts empty states (dashboard).** Pie and line charts already handle empty data with a message, but the bar chart always renders even with all-zero data - consider a consistent empty state.
+9. **Reduced-motion.** Spinners, chart animations, and OCR progress ignore `prefers-reduced-motion`; honor it for accessibility and comfort.
+10. **Currency formatting.** `formatCurrency` uses a symbol + `toFixed(2)` for all currencies, so JPY (no minor units) shows `¥100.00`. Use `Intl.NumberFormat` per currency.
+11. **Consistency.** Success feedback, button loading labels, and confirmation dialogs (native `confirm`/`alert`) vary across pages; native dialogs are not styleable and break the visual theme - consider an in-app modal (semantic `<dialog>` or an accessible modal component with responsive Tailwind).
 
 ---
 
@@ -268,7 +282,7 @@ Everything gated behind **real** Supabase/Gemini credentials (actual authenticat
 - **[High] Dependency vulnerabilities (BUG-009).** 6 high advisories including Next.js middleware/proxy-bypass and cache-poisoning classes that directly undermine the middleware-based auth gate.
 - **[Medium] CSV/formula injection (BUG-002).** User-controlled notes/categories exported unescaped.
 - **[Medium] Backend error disclosure (BUG-005).** Raw Supabase/Postgres messages rendered to users.
-- **[Low] Open-redirect hardening for OAuth `next` param (BUG-015).**
+- **[Low] Internal-path redirect hardening for OAuth `next` param (BUG-015).** The `origin` prefix already blocks cross-origin redirects; the residual risk is unvalidated internal-path redirection.
 - **[Low] Over-broad `startsWith` route gating (BUG-011).**
 - **Positives confirmed:**
   - RLS is enabled on `profiles`, `categories`, `transactions`, `budgets` with `auth.uid()`-scoped `FOR ALL` policies (`supabase/schema.sql`) - the anon key being public is by design; RLS is the real guard and it is present for all four tables.
@@ -310,7 +324,7 @@ Everything gated behind **real** Supabase/Gemini credentials (actual authenticat
 **Justification:**
 - **Blocking (drags the score to the floor):** The app returns **HTTP 500 on every route** in its shipped state (no env vars, no `.env.example`) - it is not runnable out of the box for anyone who clones it (BUG-001). This alone is disqualifying for production without a fix.
 - **Security gaps:** an unauthenticated AI endpoint that spends real money (BUG-003), incomplete account deletion leaving auth identities behind (BUG-004), 6 high-severity dependency advisories including Next.js middleware-bypass (BUG-009), and CSV/error-message exposure (BUG-002, BUG-005).
-- **Reliability/UX gaps:** silent data-load failures (BUG-006), double-submit races (BUG-007), floating-point money (BUG-010), timezone date drift (BUG-013).
+- **Reliability/UX gaps:** silent data-load failures (BUG-006), double-submit races (BUG-007), stuck submit UI on session loss (BUG-017), floating-point money (BUG-010), timezone date drift (BUG-013).
 - **Credit where due (keeps it above ~30):** the build compiles cleanly with zero type errors, lint is essentially clean (1 warning), RLS is correctly defined for all tables, auth-gating logic is correct once the client can be built (verified via the 307 redirects under fake creds), passwords are masked, there is no `dangerouslySetInnerHTML`, and semantic HTML + responsive Tailwind are used consistently. The architecture is sound; the defects are fixable and mostly localized.
 - Because the majority of end-to-end functionality is **Blocked** (unverifiable without credentials) and the one thing that *is* fully verifiable - that the app boots - **fails**, the score sits in the "major work required before it can even be evaluated in production" band.
 
