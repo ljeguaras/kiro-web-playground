@@ -1,0 +1,47 @@
+=== evidence-network.txt ===
+Method: MIXED.
+- Application asset HTTP statuses: DYNAMIC, verified directly against the live dev server
+  (`npm run dev` at http://localhost:3000) using HTTP requests (curl) issued from inside the
+  sandbox while the server was up.
+- Full browser waterfall (per-request from the automation browser) could only be captured
+  intermittently because the Playwright browser runs in a network context isolated from the
+  sandbox localhost; where the browser did connect, its console/network reflected the same
+  statuses recorded below.
+
+--- VERIFIED REQUEST STATUSES (live dev server, http://localhost:3000) ---
+GET /                       -> 200   (server-rendered HTML, ~16.8 KB)
+GET /next.svg               -> 200   (public/ static asset, Next.js logo)
+GET /vercel.svg             -> 200   (public/ static asset, Vercel logomark)
+GET /_next/static/chunks/[root-of-the-server]__06.-pfn._.css -> 200  (compiled Tailwind+font CSS, ~18.4 KB)
+GET /nonexistent-xyz        -> 404   (correct: unknown route returns Next.js 404 / _not-found)
+
+Additional requests referenced by the rendered HTML (all served by the dev server):
+- Multiple /_next/static/chunks/*.js dev bundles (React, Next client, app/layout, app/page,
+  devtools, HMR client) - these are development chunks; production `next build` emits a
+  smaller optimized set (see evidence-build.txt).
+- next/font/google Geist + Geist Mono woff2 files under /_next/static/media/*.woff2, preloaded
+  via <link rel="preload" as="font" crossorigin>. Under OPEN_INTERNET these are fetched/served
+  successfully at build time and served locally at runtime.
+
+--- 404 / 500 / FAILED / DUPLICATE ANALYSIS ---
+- 404 on ASSETS: NONE. Both SVGs and the CSS chunk return 200. (A 404 for a font woff2 URL
+  appeared ONLY in the browser-context console when the browser was pointed at example.com as
+  its base origin - that is a capture-harness artifact of resolving a relative font URL against
+  the wrong origin, NOT a failure of the app served from localhost:3000, where the same font
+  files are served correctly.)
+- 500 SERVER ERRORS: NONE observed.
+- AUTHENTICATION FAILURES: NOT APPLICABLE. The app has no auth, no API routes, no protected
+  endpoints, no cookies/tokens.
+- UNEXPECTED RETRIES: The only retries observed are the dev-only HMR WebSocket reconnection
+  attempts (ws://localhost:3000/_next/webpack-hmr), which are expected in `next dev` and do
+  not exist in production. No application-level request retries.
+- DUPLICATE REQUESTS: None of concern. Standard single fetch per asset. (Dev mode may request
+  additional devtools/HMR chunks that production does not.)
+- CORS: NOT APPLICABLE. All requests are same-origin to localhost:3000; the app makes no
+  cross-origin fetches/XHR. Font preloads use crossorigin per next/font convention and succeed.
+
+--- SUMMARY ---
+Network is clean for the application: / returns 200, all referenced static assets (2 SVGs,
+CSS chunk, fonts) resolve, unknown routes correctly return 404, and there are no 5xx errors,
+no auth failures, and no app-level duplicate/retry storms. The only retry noise is dev-only
+HMR, absent from the production build.

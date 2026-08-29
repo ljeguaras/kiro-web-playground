@@ -1,0 +1,20 @@
+=== evidence-lint.txt ===
+Method: DYNAMIC (executed `npm run lint` against the real project).
+Node: v22.23.2 (from nvm), npm 11.4.2
+Command: export PATH="$HOME/.nvm/versions/node/v22.23.2/bin:$PATH" && npm run lint
+Working dir: /projects/sandbox/kiro-web-playground
+
+--- VERBATIM OUTPUT ---
+
+> nextjs@0.1.0 lint
+> eslint
+
+--- END OUTPUT ---
+
+EXIT STATUS: 0 (clean)
+
+Notes:
+- The `lint` script is defined in package.json as `eslint` (flat config: eslint.config.mjs
+  extends next core-web-vitals + typescript).
+- No errors and no warnings were reported. ESLint printed no findings.
+- Result: PASS. No lint issues in the codebase.

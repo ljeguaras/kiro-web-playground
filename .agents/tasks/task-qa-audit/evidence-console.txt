@@ -1,0 +1,52 @@
+=== evidence-console.txt ===
+Method: DYNAMIC. Browser console captured via the Playwright automation power while the
+Next.js dev server (`npm run dev`, http://localhost:3000) was live. Messages were recorded
+by the browser during a real load of http://localhost:3000/.
+
+NOTE on environment: the Playwright browser runs in a network context that only intermittently
+reaches the sandbox's localhost dev server (the dev server process is also reaped between
+separate shell invocations). During the window in which the browser DID connect to
+http://localhost:3000, the following console messages were captured verbatim by the tool:
+
+--- CAPTURED CONSOLE MESSAGES (dev server, http://localhost:3000) ---
+[INFO]    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools
+          @ .../node_modules_next_dist_115brz8._.js
+          -> Informational only. React's standard dev-mode suggestion. Not a defect.
+
+[LOG]     [HMR] connected
+          @ .../node_modules_next_dist_115brz8._.js
+          -> Informational. Hot Module Replacement connected. Dev-only.
+
+[WARNING] Image with src "http://localhost:3000/vercel.svg" has either width or height
+          modified, but not the other. If you use CSS to change the size of your image, also
+          include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+          @ .../node_modules_next_dist_115brz8._.js
+          -> REAL, REPRODUCIBLE next/image WARNING. Origin: app/page.tsx. The Vercel logomark
+             <Image width={16} height={16}> is rendered inside a flex button; the surrounding
+             layout/utility classes affect one dimension but not the other, so Next's Image
+             component warns about a potential aspect-ratio distortion. This warning ALSO
+             appears in the dev server's own stdout (see evidence-build.txt / dev log), which
+             confirms it is genuine and not a browser artifact. This is the single actionable
+             console finding. Suggested fix: add `style={{ height: "auto" }}` (or width:auto)
+             to the two <Image> usages, or set both intrinsic dimensions consistently.
+
+[ERROR]   WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=...' failed:
+          net::ERR_CONNECTION_REFUSED  (repeated ~4x)
+          @ .../node_modules_next_dist_client_0fhqo1d._.js
+          -> DEV-ONLY / ENVIRONMENT artifact. This is the Hot Module Replacement WebSocket
+             retrying after the browser-vs-sandbox network link dropped (and after the dev
+             server was stopped). HMR does NOT exist in `next build` production output, so this
+             will NOT occur in production. Not a product defect. Recorded for completeness.
+
+--- SUMMARY ---
+- JavaScript runtime errors from application code: NONE observed.
+- Failed asset loads (app assets): NONE observed against the live server (next.svg and
+  vercel.svg both returned 200 - see evidence-network.txt).
+- The only application-attributable console message is the next/image aspect-ratio WARNING
+  (Medium severity, dev + prod relevant because it points at a real markup issue).
+- The React DevTools INFO and [HMR] connected LOG are benign dev-mode messages.
+- The ERR_CONNECTION_REFUSED WebSocket errors are dev-only HMR reconnection noise tied to the
+  sandbox network/dev-server lifecycle, not the application.
+
+Cross-check: the full raw console log captured by the tool is preserved by the automation
+harness (console-*.log under the artifacts screenshots dir at capture time).
