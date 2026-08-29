@@ -1,0 +1,112 @@
+=== evidence-a11y.txt ===
+Method: DYNAMIC. All checks below were performed in a real Chromium (Playwright) rendering of
+the page's actual server-rendered HTML + the app's real compiled CSS (extracted from the live
+dev server). Keyboard tab order, focus indicators, computed colors, alt text, ARIA and
+landmarks were read from the live DOM via getComputedStyle / focus traversal. Where a value is
+a factual measurement it is quoted verbatim.
+
+------------------------------------------------------------------------
+1) KEYBOARD NAVIGATION / TAB ORDER  (DYNAMIC - simulated Tab presses)
+------------------------------------------------------------------------
+Focusable elements: exactly 4 (all <a>). No buttons, inputs, or custom controls exist.
+Observed tab order (matches DOM/reading order - CORRECT):
+  Tab 1 -> <a> "Templates"      (href vercel.com/templates...)   outline: auto, 1px, rgb(16,16,16)
+  Tab 2 -> <a> "Learning"       (href nextjs.org/learn...)        outline: auto, 1px, rgb(16,16,16)
+  Tab 3 -> <a> "Deploy Now"     (href vercel.com/new...)          outline: auto, 1px, rgb(255,255,255)
+  Tab 4 -> <a> "Documentation"  (href nextjs.org/docs...)         outline: auto, 1px, rgb(23,23,23)
+  Tab 5 -> leaves the document (focus returns to browser chrome / body)
+  Tab 6 -> wraps back to "Templates"
+=> Tab order is logical and matches visual order. No positive tabindex, no focus traps,
+   no keyboard-inaccessible interactive elements. PASS.
+
+------------------------------------------------------------------------
+2) FOCUS INDICATORS  (DYNAMIC - computed style of :focus element)
+------------------------------------------------------------------------
+- All 4 links rely on the DEFAULT UA focus ring: computed `outline-style: auto`,
+  `outline-width: 1px`. There is NO custom `:focus`/`:focus-visible` styling in globals.css.
+- The default ring color adapts to element color: rgb(16,16,16) for the two inline text links,
+  rgb(23,23,23) for the Documentation button (visible on white), rgb(255,255,255) for the
+  Deploy Now button (white ring on its near-black bg - visible).
+- FINDING (Low): focus visibility depends entirely on the browser default outline. It is
+  present and visible in Chromium, but there is no explicit, high-contrast, app-defined
+  focus-visible style. Recommend adding an explicit `:focus-visible` ring for consistency
+  across browsers/themes. Severity Low (indicators DO appear; this is a robustness nit).
+
+------------------------------------------------------------------------
+3) IMAGE ALT TEXT  (DYNAMIC - read from live DOM)
+------------------------------------------------------------------------
+- <img> Next.js logo:      alt="Next.js logo"      (present, descriptive)  PASS
+- <img> Vercel logomark:   alt="Vercel logomark"   (present, descriptive)  PASS
+Both next/image outputs carry non-empty, meaningful alt text.
+
+------------------------------------------------------------------------
+4) ARIA / ROLES  (DYNAMIC)
+------------------------------------------------------------------------
+- No elements carry explicit role= attributes (roles found: none).
+- No aria-label / aria-labelledby / aria-describedby anywhere. For this static content page
+  none are strictly required, but see landmarks below.
+- The two icon <img>s are decorative-adjacent but correctly labeled (not aria-hidden), which
+  is acceptable.
+
+------------------------------------------------------------------------
+5) SEMANTIC LANDMARKS  (DYNAMIC - element counts from live DOM)
+------------------------------------------------------------------------
+  <main>   : 1  (present, in app/page.tsx)  PASS
+  <header> : 0  (ABSENT)
+  <footer> : 0  (ABSENT)
+  <nav>    : 0  (ABSENT)
+  <h1>     : 1  (single, correct - "To get started, edit the page.tsx file.")
+- FINDING (Low/Medium a11y): only the <main> landmark exists. There is no <header>, <footer>,
+  or <nav>. For a single-purpose landing page this is not a hard failure (main + one h1 is a
+  valid minimal structure), but adding header/footer landmarks would improve screen-reader
+  navigation and is worth noting for cross-page consistency once more pages exist.
+- Heading structure is valid: exactly one <h1>, no skipped levels (no h2-h6 used).
+
+------------------------------------------------------------------------
+6) COLOR CONTRAST  (DYNAMIC - computed colors; ratios computed from those values)
+------------------------------------------------------------------------
+Light mode (measured):
+  - Page bg (outer div): white/zinc-50  (lab(98.26 0 0) ~= #fafafa); <main> bg: rgb(255,255,255) #fff
+  - h1 text:  rgb(0,0,0) #000 on white           -> contrast ~21:1    PASS (AAA)
+  - <p> text: lab(35.1166 1.78212 -6.1173) ~= zinc-600 #52525c on white
+              -> contrast ~7.5:1                  PASS (AA & AAA for normal text)
+  - Inline link text (Templates/Learning): zinc-950 lab(2.51 ...) ~= #09090b on white
+              -> contrast ~20:1                   PASS. NOTE: links are distinguished from body
+                 text ONLY by font-weight:500 (medium) and near-black color; there is NO
+                 underline (computed text-decoration-line: none). FINDING (Medium a11y/UX):
+                 relying on weight+subtle color alone to signal a link fails the "don't use
+                 color/weight alone" guidance and hurts link discoverability. Suggest an
+                 underline or clearer affordance for the two inline text links.
+  - "Deploy Now" button: color rgb(255,255,255) #fff on bg rgb(23,23,23) #171717
+              -> contrast ~16:1                   PASS
+  - "Documentation" button: text inherits ~#171717 on white with a subtle border
+              (border-color rgb ~ #00000014, i.e. black @ 8% alpha)
+              -> text contrast PASS; the BORDER itself is very low contrast (~8% alpha) so the
+                 button's boundary is faint. FINDING (Low UX): outline button border is barely
+                 visible in light mode.
+Dark mode (measured via prefers-color-scheme: dark emulation):
+  - body bg rgb(10,10,10) #0a0a0a; outer content div bg rgb(0,0,0) #000; h1 color light
+    (zinc-50 lab(98.26 0 0) ~= #fafafa) -> high contrast PASS.
+  - Dark mode is driven ONLY by prefers-color-scheme; there is no manual toggle (see
+    evidence-ui.txt). Contrast in dark mode is adequate.
+
+------------------------------------------------------------------------
+7) SCREEN READER COMPATIBILITY  (STATIC reasoning over the DYNAMIC DOM)
+------------------------------------------------------------------------
+- lang="en" is set on <html> (PASS - important for SR pronunciation).
+- Single h1, meaningful link text ("Templates", "Learning", "Deploy Now", "Documentation")
+  - all links have discernible accessible names. PASS.
+- <main> provides a primary landmark. Absence of header/footer/nav is the main gap.
+- No live regions / dynamic content, so no SR announcement concerns.
+
+------------------------------------------------------------------------
+A11Y SUMMARY
+------------------------------------------------------------------------
+PASS: tab order, focusability, alt text on both images, single-h1 heading structure, lang
+attribute, and color contrast for all text (light and dark).
+FINDINGS to report in FEAT-002:
+  - (Medium) Inline text links (Templates, Learning) have no underline; distinguished only by
+    weight/color (text-decoration: none) - weak link affordance.
+  - (Low/Medium) Only <main> landmark; no <header>/<footer>/<nav>.
+  - (Low) Focus indicator relies on UA default outline; no explicit app-defined :focus-visible.
+  - (Low) Outline "Documentation" button border is very low-contrast (black @ 8%).

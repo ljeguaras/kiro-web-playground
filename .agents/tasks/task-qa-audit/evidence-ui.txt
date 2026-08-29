@@ -1,0 +1,103 @@
+=== evidence-ui.txt ===
+Method: DYNAMIC. Rendered in Chromium (Playwright) from the page's REAL server-rendered HTML
+(pulled from the live `npm run dev` server at http://localhost:3000) combined with the app's
+REAL compiled CSS (the Tailwind v4 + next/font output extracted from the dev server). Computed
+styles, responsive behavior, and attribute values were read from the live DOM. Screenshots
+were captured at the four required viewports (see screenshots/ dir).
+
+NOTE on screenshots: desktop/tablet/mobile/dark PNGs were produced from the reconstructed
+standalone document (real HTML + real CSS). The reconstruction inlined the two logo SVGs as
+data URIs; the Next.js logo data URI was truncated for size, so in the screenshots the logo
+renders as a partial glyph ("T"). This is a CAPTURE artifact only - against the live server the
+real /next.svg and /vercel.svg return HTTP 200 and render fully (see evidence-network.txt).
+Everything else in the screenshots (layout, heading, paragraph, inline links, both buttons,
+spacing, dark theme) reflects the app's real CSS faithfully.
+
+------------------------------------------------------------------------
+1) COMPUTED BODY FONT-FAMILY - Arial-vs-Geist conflict  (DYNAMIC, CONFIRMED)
+------------------------------------------------------------------------
+Measured computed styles:
+  - document.body  font-family = "Arial, Helvetica, sans-serif"
+  - inner content <div class="... font-sans">  font-family = 'Geist, "Geist Fallback"'
+  - <h1>  font-family = 'Geist, "Geist Fallback"'
+  - <p>   font-family = 'Geist, "Geist Fallback"'
+
+CONFIRMED CONFLICT: app/globals.css ends with a bare `body { font-family: Arial, Helvetica,
+sans-serif; }` rule. This directly contradicts the intended setup where layout.tsx wires the
+Geist next/font/google variables onto <html> and globals.css maps `--font-sans` to
+`var(--font-geist-sans)` via @theme. Because the visible content sits inside
+`<div class="font-sans">`, that div (and its h1/p children) DO get Geist - so most VISIBLE text
+happens to render in Geist. BUT the <body> element itself, and any future content placed
+outside the .font-sans wrapper, will fall back to Arial. The hardcoded Arial rule defeats the
+purpose of loading Geist and is a latent inconsistency.
+FINDING (Medium UI): remove the hardcoded `font-family: Arial, Helvetica, sans-serif` from the
+body rule (let it inherit the Geist `--font-sans` stack) so the whole document uses the loaded
+brand font consistently.
+
+------------------------------------------------------------------------
+2) target / rel ON THE 4 ANCHORS  (DYNAMIC, CONFIRMED)
+------------------------------------------------------------------------
+  [1] "Templates"    href=vercel.com/templates...  target=null   rel=null          <-- INLINE text link
+  [2] "Learning"     href=nextjs.org/learn...       target=null   rel=null          <-- INLINE text link
+  [3] "Deploy Now"   href=vercel.com/new...         target=_blank rel="noopener noreferrer"  <-- button
+  [4] "Documentation"href=nextjs.org/docs...        target=_blank rel="noopener noreferrer"  <-- button
+
+CONFIRMED: the two INLINE text links (Templates, Learning) have NO target and NO rel, while the
+two BUTTON-styled links (Deploy Now, Documentation) both correctly use target="_blank"
+rel="noopener noreferrer".
+FINDINGS:
+  - (Low/Medium consistency) Inconsistent link behavior: all four point to external sites, but
+    only two open in a new tab. Either make behavior consistent, or intentionally document why.
+  - (Low security) If Templates/Learning are later given target="_blank", they MUST also get
+    rel="noopener noreferrer" to avoid reverse-tabnabbing. Currently they open in the same tab
+    so there is no active tabnabbing risk, but the asymmetry is worth flagging.
+  - text-decoration-line computed = "none" on all four anchors (see a11y file: weak inline-link
+    affordance).
+
+------------------------------------------------------------------------
+3) RESPONSIVE / RENDERING OBSERVATIONS  (DYNAMIC across viewports)
+------------------------------------------------------------------------
+Breakpoints in the compiled CSS: sm = 40rem (640px), md = 48rem (768px). Behavior:
+  - Desktop 1440x900: content constrained to max-w-3xl (48rem) centered card on a zinc-50
+    page; items left-aligned (sm:items-start active), buttons in a row (sm:flex-row), each
+    button md:w-[158px]. Clean, no overflow. (screenshots/desktop.png)
+  - Tablet 768x1024: at exactly 768px the md: rules engage; layout still a centered column card,
+    buttons row-aligned and fixed 158px width. No horizontal overflow. (screenshots/tablet.png)
+  - Mobile 375x667: below sm(640) -> items-center + text-center, buttons STACK vertically
+    (flex-col) and go full width (w-full, md:w-[158px] not active). Heading max-w-xs, paragraph
+    max-w-md wrap correctly. No horizontal scroll / no overflow. (screenshots/mobile.png)
+  - The page uses `py-32 px-16` on <main>; on very small/narrow contexts the large px-16
+    (4rem) padding eats horizontal space but does not cause overflow at 375px. Minor: generous
+    vertical padding (py-32 = 8rem top and bottom) pushes the logo far from the heading (visible
+    in screenshots as large empty gaps via justify-between). Cosmetic only.
+  - Layout is fluid; no fixed-width containers that break; no layout-shift sources (no late
+    async content; images have explicit width/height reducing CLS).
+
+------------------------------------------------------------------------
+4) DARK MODE  (DYNAMIC, CONFIRMED)
+------------------------------------------------------------------------
+- Emulating prefers-color-scheme: dark flips CSS variables: body bg rgb(10,10,10),
+  content div bg rgb(0,0,0) (dark:bg-black), h1 -> light (dark:text-zinc-50), logos invert
+  (dark:invert). Renders correctly. (screenshots/dark.png)
+- CONFIRMED: dark mode is prefers-color-scheme ONLY. There is NO manual/user theme toggle
+  anywhere in page.tsx or layout.tsx. FINDING (Low UX): users cannot override the OS theme.
+
+------------------------------------------------------------------------
+5) METADATA (title/description) placeholders  (STATIC + confirmed in rendered <head>)
+------------------------------------------------------------------------
+- Rendered <head> contains <title>Create Next App</title> and
+  <meta name="description" content="Generated by create next app">. These are the untouched
+  create-next-app placeholders (layout.tsx metadata).
+  FINDING (Medium SEO/polish): replace placeholder title/description before production.
+
+------------------------------------------------------------------------
+UI SUMMARY
+------------------------------------------------------------------------
+Layout is responsive and clean across desktop/tablet/mobile with no overflow or broken layout;
+dark mode works. Key UI findings for FEAT-002:
+  - (Medium) body hardcodes Arial, overriding the loaded Geist font at the body level.
+  - (Medium) placeholder <title>/<meta description> ("Create Next App" / "Generated by create next app").
+  - (Low/Medium) inconsistent external-link target behavior (2 of 4 open new tab).
+  - (Low) inline links have no underline (text-decoration: none).
+  - (Low) dark mode has no manual toggle (prefers-color-scheme only).
+  - (Cosmetic) very large py-32 vertical padding creates big empty gaps on tall viewports.
