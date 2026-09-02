@@ -1,0 +1,714 @@
+{
+  "timestamp": "2026-09-02T13:32:56.697Z",
+  "url": "http://localhost:3000",
+  "screenshots": [
+    "desktop-1280x800.png",
+    "tablet-768x1024.png",
+    "mobile-375x812.png",
+    "desktop-dark-1280x800.png"
+  ],
+  "accessibilitySnapshot": "- main:\n  - img \"Next.js logo\"\n  - heading \"To get started, edit the page.tsx file.\" [level=1]\n  - paragraph:\n    - text: Looking for a starting point or more instructions? Head over to\n    - link \"Templates\":\n      - /url: https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app\n    - text: or the\n    - link \"Learning\":\n      - /url: https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app\n    - text: center.\n  - link \"Vercel logomark Deploy Now\":\n    - /url: https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app\n    - img \"Vercel logomark\"\n    - text: Deploy Now\n  - link \"Documentation\":\n    - /url: https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app\n- alert",
+  "consoleMessages": [
+    {
+      "level": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "location": {
+        "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js",
+        "line": 2431,
+        "column": 27,
+        "lineNumber": 2431,
+        "columnNumber": 27
+      }
+    },
+    {
+      "level": "log",
+      "text": "[HMR] connected",
+      "location": {
+        "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js",
+        "line": 2431,
+        "column": 27,
+        "lineNumber": 2431,
+        "columnNumber": 27
+      }
+    },
+    {
+      "level": "warning",
+      "text": "Image with src \"http://localhost:3000/vercel.svg\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "location": {
+        "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js",
+        "line": 2431,
+        "column": 27,
+        "lineNumber": 2431,
+        "columnNumber": 27
+      }
+    },
+    {
+      "level": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "location": {
+        "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js",
+        "line": 2431,
+        "column": 27,
+        "lineNumber": 2431,
+        "columnNumber": 27
+      }
+    },
+    {
+      "level": "log",
+      "text": "[HMR] connected",
+      "location": {
+        "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js",
+        "line": 2431,
+        "column": 27,
+        "lineNumber": 2431,
+        "columnNumber": 27
+      }
+    },
+    {
+      "level": "warning",
+      "text": "Image with src \"http://localhost:3000/vercel.svg\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+      "location": {
+        "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js",
+        "line": 2431,
+        "column": 27,
+        "lineNumber": 2431,
+        "columnNumber": 27
+      }
+    }
+  ],
+  "networkRequests": [
+    {
+      "url": "http://localhost:3000/",
+      "method": "GET",
+      "resourceType": "document",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:3000/_next/static/media/797e433ab948586e-s.p.08e28id.o-okb.woff2",
+      "method": "GET",
+      "resourceType": "font",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:3000/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2",
+      "method": "GET",
+      "resourceType": "font",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:3000/next.svg",
+      "method": "GET",
+      "resourceType": "image",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__06.-pfn._.css",
+      "method": "GET",
+      "resourceType": "stylesheet",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/_0rqeker._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/turbopack-_0p44nws._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_0tt2wve._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/app_layout_tsx_004glpo._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_07p5au~._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/app_page_tsx_12uwdpq._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_components_builtin_global-error_12uwdpq.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/vercel.svg",
+      "method": "GET",
+      "resourceType": "image",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js",
+      "method": "GET",
+      "resourceType": "script",
+      "status": 304
+    },
+    {
+      "url": "http://localhost:3000/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "method": "GET",
+      "resourceType": "other",
+      "status": 200
+    },
+    {
+      "url": "http://localhost:3000/",
+      "method": "GET",
+      "resourceType": "document"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/media/797e433ab948586e-s.p.08e28id.o-okb.woff2",
+      "method": "GET",
+      "resourceType": "font"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2",
+      "method": "GET",
+      "resourceType": "font"
+    },
+    {
+      "url": "http://localhost:3000/next.svg",
+      "method": "GET",
+      "resourceType": "image"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__06.-pfn._.css",
+      "method": "GET",
+      "resourceType": "stylesheet"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/_0rqeker._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/turbopack-_0p44nws._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_0tt2wve._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/app_layout_tsx_004glpo._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_07p5au~._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/app_page_tsx_12uwdpq._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_components_builtin_global-error_12uwdpq.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/vercel.svg",
+      "method": "GET",
+      "resourceType": "image"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js",
+      "method": "GET",
+      "resourceType": "script"
+    },
+    {
+      "url": "http://localhost:3000/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+      "method": "GET",
+      "resourceType": "other"
+    }
+  ],
+  "findings": [],
+  "pageLoadStatus": 200,
+  "domAnalysis": {
+    "headings": [
+      {
+        "tag": "H1",
+        "text": "To get started, edit the page.tsx file.",
+        "id": ""
+      }
+    ],
+    "images": [
+      {
+        "src": "http://localhost:3000/next.svg",
+        "alt": "Next.js logo",
+        "hasAlt": true,
+        "width": 100,
+        "height": 20,
+        "naturalWidth": 300,
+        "naturalHeight": 61
+      },
+      {
+        "src": "http://localhost:3000/vercel.svg",
+        "alt": "Vercel logomark",
+        "hasAlt": true,
+        "width": 16,
+        "height": 14,
+        "naturalWidth": 173,
+        "naturalHeight": 150
+      }
+    ],
+    "links": [
+      {
+        "href": "https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+        "text": "Templates",
+        "target": "",
+        "rel": "",
+        "ariaLabel": null,
+        "hasVisibleText": true
+      },
+      {
+        "href": "https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+        "text": "Learning",
+        "target": "",
+        "rel": "",
+        "ariaLabel": null,
+        "hasVisibleText": true
+      },
+      {
+        "href": "https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+        "text": "Deploy Now",
+        "target": "_blank",
+        "rel": "noopener noreferrer",
+        "ariaLabel": null,
+        "hasVisibleText": true
+      },
+      {
+        "href": "https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+        "text": "Documentation",
+        "target": "_blank",
+        "rel": "noopener noreferrer",
+        "ariaLabel": null,
+        "hasVisibleText": true
+      }
+    ],
+    "semanticElements": {
+      "main": 1,
+      "nav": 0,
+      "header": 0,
+      "footer": 0,
+      "article": 0,
+      "section": 0,
+      "aside": 0,
+      "divCount": 4
+    },
+    "meta": {
+      "title": "Create Next App",
+      "description": "Generated by create next app",
+      "viewport": "width=device-width, initial-scale=1"
+    },
+    "focusStyles": {
+      "el_0_A_Templates": {
+        "outline": "",
+        "outlineWidth": "",
+        "boxShadow": ""
+      },
+      "el_1_A_Learning": {
+        "outline": "",
+        "outlineWidth": "",
+        "boxShadow": ""
+      },
+      "el_2_A_Deploy Now": {
+        "outline": "",
+        "outlineWidth": "",
+        "boxShadow": ""
+      },
+      "el_3_A_Documentation": {
+        "outline": "",
+        "outlineWidth": "",
+        "boxShadow": ""
+      }
+    },
+    "htmlLang": "en",
+    "bodyFont": "Arial, Helvetica, sans-serif",
+    "bodyFirstChildTag": "DIV",
+    "bodyFirstChildClasses": ""
+  },
+  "contrastCheck": [
+    {
+      "tag": "H1",
+      "text": "To get started, edit the page.tsx file.",
+      "color": "rgb(0, 0, 0)",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "contrastRatio": 1,
+      "passesAA": false,
+      "passesAAA": false
+    },
+    {
+      "tag": "A",
+      "text": "Deploy Now",
+      "color": "rgb(255, 255, 255)",
+      "backgroundColor": "rgb(23, 23, 23)",
+      "contrastRatio": 17.93,
+      "passesAA": true,
+      "passesAAA": true
+    },
+    {
+      "tag": "A",
+      "text": "Documentation",
+      "color": "rgb(23, 23, 23)",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "contrastRatio": 1.17,
+      "passesAA": false,
+      "passesAAA": false
+    }
+  ],
+  "keyboardNavigation": {
+    "focus1": {
+      "tag": "A",
+      "text": "Templates",
+      "href": "https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "className": "font-medium text-zinc-950 dark:text-zinc-50"
+    },
+    "focus2": {
+      "tag": "A",
+      "text": "Learning",
+      "href": "https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "className": "font-medium text-zinc-950 dark:text-zinc-50"
+    },
+    "focus3": {
+      "tag": "A",
+      "text": "Deploy Now",
+      "href": "https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "className": "flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
+    },
+    "focus4": {
+      "tag": "A",
+      "text": "Documentation",
+      "href": "https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "className": "flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
+    }
+  },
+  "focusRingCheck": {
+    "element": "A",
+    "outline": "rgb(23, 23, 23) auto 1px",
+    "outlineWidth": "1px",
+    "outlineColor": "rgb(23, 23, 23)",
+    "outlineStyle": "auto",
+    "boxShadow": "none"
+  },
+  "ctaLinks": [
+    {
+      "text": "Templates",
+      "href": "https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "target": "",
+      "rel": ""
+    },
+    {
+      "text": "Learning",
+      "href": "https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "target": "",
+      "rel": ""
+    },
+    {
+      "text": "Deploy Now",
+      "href": "https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "target": "_blank",
+      "rel": "noopener noreferrer"
+    },
+    {
+      "text": "Documentation",
+      "href": "https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "target": "_blank",
+      "rel": "noopener noreferrer"
+    }
+  ],
+  "perfTiming": {
+    "domContentLoaded": 76,
+    "loadComplete": 238,
+    "firstPaint": 96,
+    "firstContentfulPaint": 96,
+    "resources": [
+      {
+        "name": "http://localhost:3000/_next/static/media/797e433ab948586e-s.p.08e28id.o-okb.woff2",
+        "duration": 12,
+        "transferSize": 23408
+      },
+      {
+        "name": "http://localhost:3000/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2",
+        "duration": 25,
+        "transferSize": 29588
+      },
+      {
+        "name": "http://localhost:3000/next.svg",
+        "duration": 28,
+        "transferSize": 1004
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__06.-pfn._.css",
+        "duration": 26,
+        "transferSize": 4625
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js",
+        "duration": 28,
+        "transferSize": 975
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js",
+        "duration": 43,
+        "transferSize": 32079
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js",
+        "duration": 68,
+        "transferSize": 184041
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_0553esy.js",
+        "duration": 70,
+        "transferSize": 218129
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js",
+        "duration": 44,
+        "transferSize": 28641
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js",
+        "duration": 69,
+        "transferSize": 151107
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/node_modules_%40swc_helpers_cjs_0-4ujiy._.js",
+        "duration": 53,
+        "transferSize": 1039
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js",
+        "duration": 46,
+        "transferSize": 45863
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/_0rqeker._.js",
+        "duration": 49,
+        "transferSize": 1056
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/turbopack-_0p44nws._.js",
+        "duration": 63,
+        "transferSize": 22702
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_0tt2wve._.js",
+        "duration": 64,
+        "transferSize": 36957
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/app_layout_tsx_004glpo._.js",
+        "duration": 60,
+        "transferSize": 615
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/app_page_tsx_12uwdpq._.js",
+        "duration": 71,
+        "transferSize": 563
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_components_builtin_global-error_12uwdpq.js",
+        "duration": 72,
+        "transferSize": 512
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/node_modules_next_dist_07p5au~._.js",
+        "duration": 72,
+        "transferSize": 28031
+      },
+      {
+        "name": "http://localhost:3000/vercel.svg",
+        "duration": 34,
+        "transferSize": 428
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0yjw1oe._.js",
+        "duration": 12,
+        "transferSize": 4175
+      },
+      {
+        "name": "http://localhost:3000/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10mygs7._.js",
+        "duration": 12,
+        "transferSize": 589
+      },
+      {
+        "name": "http://localhost:3000/favicon.ico?favicon.0x3dzn~oxb6tn.ico",
+        "duration": 3,
+        "transferSize": 9592
+      }
+    ]
+  },
+  "tabletLayout": {
+    "mainRect": {
+      "width": 768,
+      "height": 1024
+    },
+    "ctaDivDisplay": "row"
+  },
+  "mobileLayout": {
+    "mainRect": {
+      "width": 375,
+      "height": 812
+    },
+    "ctaDivDisplay": "column",
+    "textDivAlign": {
+      "alignItems": "center",
+      "textAlign": "center"
+    }
+  },
+  "imageAnalysis": [
+    {
+      "src": "http://localhost:3000/next.svg",
+      "alt": "Next.js logo",
+      "declaredWidth": "100",
+      "declaredHeight": "20",
+      "renderedWidth": 100,
+      "renderedHeight": 20,
+      "naturalWidth": 300,
+      "naturalHeight": 61,
+      "cssWidth": "100px",
+      "cssHeight": "20.2969px",
+      "isStretched": false
+    },
+    {
+      "src": "http://localhost:3000/vercel.svg",
+      "alt": "Vercel logomark",
+      "declaredWidth": "16",
+      "declaredHeight": "16",
+      "renderedWidth": 16,
+      "renderedHeight": 14,
+      "naturalWidth": 173,
+      "naturalHeight": 150,
+      "cssWidth": "16px",
+      "cssHeight": "13.8438px",
+      "isStretched": false
+    }
+  ],
+  "securityCheck": {
+    "cspMetaPresent": false,
+    "inlineScriptCount": 9,
+    "isHTTPS": false
+  }
+}
