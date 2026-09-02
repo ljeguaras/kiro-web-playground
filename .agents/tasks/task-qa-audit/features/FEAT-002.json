@@ -1,0 +1,37 @@
+{
+  "id": "FEAT-002",
+  "type": "chore",
+  "description": "Playwright live testing: start dev server, capture screenshots at desktop/tablet/mobile, inspect console, network, accessibility snapshot, and test CTA links. Record all observations.",
+  "status": "completed",
+  "steps": [
+    "Start dev server: npm run dev (background) in /projects/sandbox/kiro-web-playground/",
+    "Wait for server to be ready on http://localhost:3000",
+    "Navigate to http://localhost:3000 with Playwright",
+    "Take full-page desktop screenshot (1280x800) - save as desktop.png",
+    "Capture accessibility snapshot",
+    "Capture all console messages (level: warn)",
+    "Capture network requests",
+    "Resize to tablet (768x1024), take screenshot - save as tablet.png",
+    "Resize to mobile (375x812), take screenshot - save as mobile.png",
+    "Test 'Deploy Now' CTA link - verify it opens in new tab or navigates",
+    "Test 'Documentation' CTA link - verify it opens in new tab or navigates",
+    "Test keyboard navigation: Tab through all focusable elements",
+    "Evaluate JavaScript for any uncaught errors",
+    "Evaluate DOM for missing alt text, aria labels, heading hierarchy",
+    "Record all findings for inclusion in QA_REPORT.md"
+  ],
+  "acceptance_criteria": [
+    "Screenshots taken at desktop, tablet, and mobile viewports",
+    "Console messages inspected and recorded",
+    "Network requests inspected and recorded",
+    "Both CTA links tested",
+    "Accessibility snapshot captured",
+    "All findings documented"
+  ],
+  "verification": [
+    "Screenshot files exist in /projects/sandbox/.kiro/artifacts/screenshots/",
+    "All observations recorded for report writing"
+  ],
+  "blocked_reason": null,
+  "findings": "Playwright testing completed successfully using playwright-core directly within the bwrap sandbox (Playwright MCP cannot reach localhost from its network namespace due to bwrap isolation). Dev server started via Node.js subprocess. Screenshots captured at 4 viewports. Key findings: (1) HTTP 200, FCP 96ms, DOMContentLoaded 76ms. (2) 1 browser console warning: Vercel logo aspect ratio. (3) 0 network errors. (4) Keyboard navigation works correctly for all 4 links. (5) Focus ring present but thin (1px auto). (6) Body font is Arial not Geist (CSS override bug confirmed). (7) No CSP headers. (8) Missing OG meta tags. (9) Non-semantic outer div confirmed. (10) 'Deploy Now' and 'Documentation' links have target=_blank with rel=noopener noreferrer. Screenshots in qa-screenshots/ and .kiro/artifacts/screenshots/. Raw data in qa-results.json."
+}
