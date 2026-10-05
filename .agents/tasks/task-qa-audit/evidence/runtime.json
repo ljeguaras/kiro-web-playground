@@ -1,0 +1,340 @@
+{
+  "viewports": {
+    "mobile": {
+      "size": "375x667",
+      "console": [],
+      "pageerrors": [],
+      "requestfailed": [],
+      "responses": [
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/0h9hut8~hz2y-.css"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/next.svg"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/media/797e433ab948586e-s.p.08e28id.o-okb.woff2"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/11qk_vpw_zwkf.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/turbopack-1520qcq~c.cqa.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/0fsi8lw5utejl.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/07mne3zcixcz2.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/0d3tkj33oycf2.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/0no1b_s-81nqh.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/10~x95jhs6ns3.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/vercel.svg"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/favicon.ico?favicon.0x3dzn~oxb6tn.ico"
+        }
+      ]
+    },
+    "tablet": {
+      "size": "768x1024",
+      "console": [],
+      "pageerrors": [],
+      "requestfailed": [],
+      "responses": [
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/media/797e433ab948586e-s.p.08e28id.o-okb.woff2"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/0h9hut8~hz2y-.css"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/next.svg"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/11qk_vpw_zwkf.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/turbopack-1520qcq~c.cqa.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/0fsi8lw5utejl.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/0no1b_s-81nqh.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/07mne3zcixcz2.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/0d3tkj33oycf2.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/10~x95jhs6ns3.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/vercel.svg"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/favicon.ico?favicon.0x3dzn~oxb6tn.ico"
+        }
+      ]
+    },
+    "desktop": {
+      "size": "1440x900",
+      "console": [],
+      "pageerrors": [],
+      "requestfailed": [],
+      "responses": [
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/media/797e433ab948586e-s.p.08e28id.o-okb.woff2"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/0h9hut8~hz2y-.css"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/next.svg"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/11qk_vpw_zwkf.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/0fsi8lw5utejl.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/turbopack-1520qcq~c.cqa.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/0no1b_s-81nqh.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/07mne3zcixcz2.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/0d3tkj33oycf2.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/_next/static/chunks/10~x95jhs6ns3.js"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/vercel.svg"
+        },
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:3000/favicon.ico?favicon.0x3dzn~oxb6tn.ico"
+        }
+      ]
+    }
+  },
+  "focusOrder": [
+    {
+      "tabIndex": 1,
+      "tag": "A",
+      "text": "Templates",
+      "href": "https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "target": null,
+      "rel": null,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "outlineColor": "rgb(16, 16, 16)",
+      "boxShadow": "none"
+    },
+    {
+      "tabIndex": 2,
+      "tag": "A",
+      "text": "Learning",
+      "href": "https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "target": null,
+      "rel": null,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "outlineColor": "rgb(16, 16, 16)",
+      "boxShadow": "none"
+    },
+    {
+      "tabIndex": 3,
+      "tag": "A",
+      "text": "Deploy Now",
+      "href": "https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "target": "_blank",
+      "rel": "noopener noreferrer",
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "outlineColor": "rgb(255, 255, 255)",
+      "boxShadow": "none"
+    },
+    {
+      "tabIndex": 4,
+      "tag": "A",
+      "text": "Documentation",
+      "href": "https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "target": "_blank",
+      "rel": "noopener noreferrer",
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "outlineColor": "rgb(23, 23, 23)",
+      "boxShadow": "none"
+    },
+    {
+      "tabIndex": 5,
+      "tag": "BODY/none"
+    }
+  ],
+  "darkmode": {
+    "size": "1440x900 (prefers-color-scheme: dark)",
+    "console": [],
+    "pageerrors": [],
+    "requestfailed": [],
+    "responses": [
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/_next/static/media/797e433ab948586e-s.p.08e28id.o-okb.woff2"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/_next/static/chunks/0h9hut8~hz2y-.css"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/next.svg"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/_next/static/chunks/11qk_vpw_zwkf.js"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/_next/static/chunks/0fsi8lw5utejl.js"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/_next/static/chunks/0no1b_s-81nqh.js"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/_next/static/chunks/turbopack-1520qcq~c.cqa.js"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/_next/static/chunks/07mne3zcixcz2.js"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/_next/static/chunks/0d3tkj33oycf2.js"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/_next/static/chunks/10~x95jhs6ns3.js"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/vercel.svg"
+      },
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:3000/favicon.ico?favicon.0x3dzn~oxb6tn.ico"
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "text": "Templates",
+      "href": "https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "target": null,
+      "rel": null
+    },
+    {
+      "text": "Learning",
+      "href": "https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "target": null,
+      "rel": null
+    },
+    {
+      "text": "Deploy Now",
+      "href": "https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "target": "_blank",
+      "rel": "noopener noreferrer"
+    },
+    {
+      "text": "Documentation",
+      "href": "https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app",
+      "target": "_blank",
+      "rel": "noopener noreferrer"
+    }
+  ]
+}
