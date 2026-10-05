@@ -1,0 +1,7 @@
+{
+  "task_id": "task-qa-audit",
+  "task_description": "Perform a comprehensive end-to-end manual QA audit of the kiro-web-playground Next.js 16 app and produce a full QA audit report (QA_AUDIT_REPORT.md) with all 9 deliverable sections. The app is a single static landing page, so the report must honestly mark absent-feature scope (forms, modals, auth, CRUD, APIs, pagination, etc.) as Not Applicable while thoroughly auditing the real page (markup, accessibility, responsiveness, console/network, links, images, theme/font consistency, security headers, metadata, performance).",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002"],
+  "blocked_reason": null
+}
